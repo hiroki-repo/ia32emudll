@@ -1,5 +1,5 @@
 #include "windows.h"
-BOOL APIENTRY DllMain (HMODULE hModule, 
+BOOL APIENTRY DllMain (HMODULE hModule,
 	DWORD  ul_reason_for_call,
 	LPVOID lpReserved
 )
@@ -40,7 +40,7 @@ VC_DLL_EXPORTS void CPU_INIT();
 VC_DLL_EXPORTS void CPU_RELEASE();
 VC_DLL_EXPORTS void CPU_FINISH();
 VC_DLL_EXPORTS void CPU_RESET();
-VC_DLL_EXPORTS void CPU_EXECUTE();
+VC_DLL_EXPORTS int CPU_EXECUTE();
 VC_DLL_EXPORTS void CPU_SOFT_INTERRUPT(int vect);
 VC_DLL_EXPORTS void CPU_JMP_FAR(UINT16 new_cs, UINT32 new_ip);
 VC_DLL_EXPORTS void CPU_CALL_FAR(UINT16 new_cs, UINT32 new_ip);
@@ -60,7 +60,7 @@ VC_DLL_EXPORTS void CPU_SET_IRQ(BOOL statforirq);
 VC_DLL_EXPORTS void CPU_SET_A20(UINT8 statfora20);
 VC_DLL_EXPORTS void CPU_REQ_INTERRUPT(int vect);
 VC_DLL_EXPORTS void CPU_REQ_NMINTERRUPT();
-VC_DLL_EXPORTS void CPU_EXECUTE_CC(int clockcount);
+VC_DLL_EXPORTS int CPU_EXECUTE_CC(int clockcount);
 VC_DLL_EXPORTS UINT32 CPU_GET_SYSREG(int regid);
 VC_DLL_EXPORTS void CPU_SET_SYSREG(int regid, UINT32 regdata);
 VC_DLL_EXPORTS UINT32 CPU_GET_SYSREG_DESC(int regid);
@@ -96,12 +96,21 @@ VC_DLL_EXPORTS UINT16 CPU_GET_GDTR_LIMIT();
 VC_DLL_EXPORTS void CPU_SET_GDTR_LIMIT(UINT16 regdata);
 VC_DLL_EXPORTS UINT32 CPU_GET_GDTR_BASE();
 VC_DLL_EXPORTS void CPU_SET_GDTR_BASE(UINT32 regdata);
+VC_DLL_EXPORTS void CPU_BUS_SIZE_CHANGE(int size);
+VC_DLL_EXPORTS void CPU_REQ_INTERRUPT_IN(int vect);
+VC_DLL_EXPORTS void CPU_REQ_NMINTERRUPT_IN();
 
 UINT32(*i386memaccess) (int, int, int);
 
 void CPU_SET_MACTLFC(UINT32 (*ptrformaf) (int, int, int))
 {
 	i386memaccess = ptrformaf;
+}
+
+int cpubussize = 0;
+
+void CPU_BUS_SIZE_CHANGE(int size) {
+	cpubussize = size;
 }
 
 
@@ -111,11 +120,24 @@ UINT8 read_byte(UINT32 byteaddress)
 }
 UINT16 read_word(UINT32 byteaddress)
 {
-	return ((i386memaccess(((int)byteaddress) + 0, 0, 1) & 0xFF) << (8 * 0)) | ((i386memaccess(((int)byteaddress) + 1, 0, 1) & 0xFF) << (8 * 1));
+	if (((cpubussize >> 0) & 0xFF) == 0) {
+		return ((i386memaccess(((int)byteaddress) + 0, 0, 1) & 0xFF) << (8 * 0)) | ((i386memaccess(((int)byteaddress) + 1, 0, 1) & 0xFF) << (8 * 1));
+	}
+	else if (((cpubussize >> 0) & 0xFF) >= 1) {
+		return ((i386memaccess(((int)byteaddress) + 0, 0, 1 | 0x10) & 0xFFFF) << (16 * 0));
+	}
 }
 UINT32 read_dword(UINT32 byteaddress)
 {
-	return ((i386memaccess(((int)byteaddress) + 0, 0, 1) & 0xFF) << (8 * 0)) | ((i386memaccess(((int)byteaddress) + 1, 0, 1) & 0xFF) << (8 * 1)) | ((i386memaccess(((int)byteaddress) + 2, 0, 1) & 0xFF) << (8 * 2)) | ((i386memaccess(((int)byteaddress) + 3, 0, 1) & 0xFF) << (8 * 3));
+	if (((cpubussize >> 0) & 0xFF) == 0) {
+		return ((i386memaccess(((int)byteaddress) + 0, 0, 1) & 0xFF) << (8 * 0)) | ((i386memaccess(((int)byteaddress) + 1, 0, 1) & 0xFF) << (8 * 1)) | ((i386memaccess(((int)byteaddress) + 2, 0, 1) & 0xFF) << (8 * 2)) | ((i386memaccess(((int)byteaddress) + 3, 0, 1) & 0xFF) << (8 * 3));
+	}
+	else if (((cpubussize >> 0) & 0xFF) == 1) {
+		return ((i386memaccess(((int)byteaddress) + 0, 0, 1 | 0x10) & 0xFFFF) << (16 * 0))| ((i386memaccess(((int)byteaddress) + 2, 0, 1 | 0x10) & 0xFFFF) << (16 * 1));
+	}
+	else if (((cpubussize >> 0) & 0xFF) >= 2) {
+		return i386memaccess(((int)byteaddress) + 0, 0, 1 | 0x20);
+	}
 }
 
 void write_byte(UINT32 byteaddress, UINT8 data)
@@ -124,15 +146,29 @@ void write_byte(UINT32 byteaddress, UINT8 data)
 }
 void write_word(UINT32 byteaddress, UINT16 data)
 {
-	i386memaccess(((int)byteaddress) + 0, (UINT8)(data >> (8 * 0)), 0);
-	i386memaccess(((int)byteaddress) + 1, (UINT8)(data >> (8 * 1)), 0);
+	if (((cpubussize >> 0) & 0xFF) == 0) {
+		i386memaccess(((int)byteaddress) + 0, (UINT8)(data >> (8 * 0)), 0);
+		i386memaccess(((int)byteaddress) + 1, (UINT8)(data >> (8 * 1)), 0);
+	}
+	else if (((cpubussize >> 0) & 0xFF) >= 1) {
+		i386memaccess(((int)byteaddress) + 0, (data >> (16 * 0)), 0 | 0x10);
+	}
 }
 void write_dword(UINT32 byteaddress, UINT32 data)
 {
-	i386memaccess(((int)byteaddress) + 0, (UINT8)(data >> (8 * 0)), 0);
-	i386memaccess(((int)byteaddress) + 1, (UINT8)(data >> (8 * 1)), 0);
-	i386memaccess(((int)byteaddress) + 2, (UINT8)(data >> (8 * 2)), 0);
-	i386memaccess(((int)byteaddress) + 3, (UINT8)(data >> (8 * 3)), 0);
+	if (((cpubussize >> 0) & 0xFF) == 0) {
+		i386memaccess(((int)byteaddress) + 0, (UINT8)(data >> (8 * 0)), 0);
+		i386memaccess(((int)byteaddress) + 1, (UINT8)(data >> (8 * 1)), 0);
+		i386memaccess(((int)byteaddress) + 2, (UINT8)(data >> (8 * 2)), 0);
+		i386memaccess(((int)byteaddress) + 3, (UINT8)(data >> (8 * 3)), 0);
+	}
+	else if (((cpubussize >> 0) & 0xFF) == 1) {
+		i386memaccess(((int)byteaddress) + 0, (data >> (16 * 0)), 0 | 0x10);
+		i386memaccess(((int)byteaddress) + 2, (data >> (16 * 1)), 0 | 0x10);
+	}
+	else if (((cpubussize >> 0) & 0xFF) >= 2) {
+		i386memaccess(((int)byteaddress) + 0, (data), 0 | 0x20);
+	}
 }
 
 UINT8 read_io_byte(UINT32 byteaddress)
@@ -141,11 +177,24 @@ UINT8 read_io_byte(UINT32 byteaddress)
 }
 UINT16 read_io_word(UINT32 byteaddress)
 {
-	return (i386memaccess(((int)byteaddress) + 0, 0, 3) & 0xFFFF);
+	if (((cpubussize >> 8) & 0xFF) == 0) {
+		return ((i386memaccess(((int)byteaddress) + 0, 0, 3) & 0xFF) << (8 * 0)) | ((i386memaccess(((int)byteaddress) + 1, 0, 3) & 0xFF) << (8 * 1));
+	}
+	else if (((cpubussize >> 8) & 0xFF) >= 1) {
+		return (i386memaccess(((int)byteaddress) + 0, 0, 3) & 0xFFFF | 0x10);
+	}
 }
 UINT32 read_io_dword(UINT32 byteaddress)
 {
-	return (i386memaccess(((int)byteaddress) + 0, 0, 3) & 0xFFFFFFFF);
+	if (((cpubussize >> 8) & 0xFF) == 0) {
+		return ((i386memaccess(((int)byteaddress) + 0, 0, 3) & 0xFF) << (8 * 0)) | ((i386memaccess(((int)byteaddress) + 1, 0, 3) & 0xFF) << (8 * 1)) | ((i386memaccess(((int)byteaddress) + 2, 0, 3) & 0xFF) << (8 * 2)) | ((i386memaccess(((int)byteaddress) + 3, 0, 3) & 0xFF) << (8 * 3));
+	}
+	else if (((cpubussize >> 8) & 0xFF) == 1) {
+		return ((i386memaccess(((int)byteaddress) + 0, 0, 3 | 0x10) & 0xFFFF) << (16 * 0))| ((i386memaccess(((int)byteaddress) + 0, 0, 3 | 0x10) & 0xFFFF) << (16 * 1));
+	}
+	else if (((cpubussize >> 8) & 0xFF) >= 2) {
+		return (i386memaccess(((int)byteaddress) + 0, 0, 3 | 0x20) & 0xFFFFFFFF);
+	}
 }
 
 void write_io_byte(UINT32 byteaddress, UINT8 data)
@@ -154,11 +203,30 @@ void write_io_byte(UINT32 byteaddress, UINT8 data)
 }
 void write_io_word(UINT32 byteaddress, UINT16 data)
 {
-	i386memaccess(((int)byteaddress) + 0, (UINT16)data, 2);
+	if (((cpubussize >> 8) & 0xFF) == 0) {
+		i386memaccess(((int)byteaddress) + 0, (UINT8)(data >> (8 * 0)), 2);
+		i386memaccess(((int)byteaddress) + 1, (UINT8)(data >> (8 * 1)), 2);
+	}
+	else {
+		i386memaccess(((int)byteaddress) + 0, (UINT16)(data >> 16 * 0), 2 | 0x10);
+	}
+	//i386memaccess(((int)byteaddress) + 0, (UINT16)data, 2);
 }
 void write_io_dword(UINT32 byteaddress, UINT32 data)
 {
-	i386memaccess(((int)byteaddress) + 0, (UINT32)data, 2);
+	if (((cpubussize >> 8) & 0xFF) == 0) {
+		i386memaccess(((int)byteaddress) + 0, (UINT8)(data >> (8 * 0)), 2);
+		i386memaccess(((int)byteaddress) + 1, (UINT8)(data >> (8 * 1)), 2);
+		i386memaccess(((int)byteaddress) + 2, (UINT8)(data >> (8 * 2)), 2);
+		i386memaccess(((int)byteaddress) + 3, (UINT8)(data >> (8 * 3)), 2);
+	}else if (((cpubussize >> 8) & 0xFF) == 1) {
+		i386memaccess(((int)byteaddress) + 0, (UINT16)(data >> 16 * 0), 2 | 0x10);
+		i386memaccess(((int)byteaddress) + 2, (UINT16)(data >> 16 * 2), 2 | 0x10);
+	}
+	else {
+		i386memaccess(((int)byteaddress) + 0, (UINT32)(data), 2 | 0x20);
+	}
+	//i386memaccess(((int)byteaddress) + 0, (UINT32)data, 2);
 }
 
 
@@ -686,7 +754,7 @@ void CPU_RESET()
 
 UINT32 CPU_GET_NEXT_PC();
 
-void CPU_EXECUTE()
+int CPU_EXECUTE()
 {
 #ifdef USE_DEBUGGER
 	if(now_debugging) {
@@ -729,10 +797,15 @@ void CPU_EXECUTE()
 		}
 	}
 #endif
+	return CPU_BASECLOCK - CPU_REMCLOCK;
 }
 
-void CPU_EXECUTE_CC(int clockcount)
+int CPU_EXECUTE_CC(int clockcount)
 {
+	int cc4internal = clockcount;
+	while (cc4internal > 0) { cc4internal -= CPU_EXECUTE(); }
+	return cc4internal;
+#if 0
 	CPU_REMCLOCK = clockcount;
 	CPU_BASECLOCK = 0;
 	CPU_EXEC();
@@ -747,6 +820,8 @@ void CPU_EXECUTE_CC(int clockcount)
 	}
 	//	return CPU_BASECLOCK - CPU_REMCLOCK;
 
+		return CPU_BASECLOCK - CPU_REMCLOCK;
+#endif
 }
 
 void CPU_SOFT_INTERRUPT(int vect)
@@ -905,11 +980,22 @@ void CPU_REQ_INTERRUPT(int vect)
 	}
 }
 
+void CPU_REQ_INTERRUPT_IN(int vect)
+{
+	irq_pending = TRUE;
+	pic_ack_vector = vect;
+}
+
 void CPU_REQ_NMINTERRUPT()
 {
 	//nmi_pending = true;
 	CPU_INTERRUPT(2, 0);
 	//nmi_pending = false;
+}
+
+void CPU_REQ_NMINTERRUPT_IN()
+{
+	nmi_pending = true;
 }
 
 void CPU_SET_IRQ(BOOL statforirq)
@@ -943,3 +1029,34 @@ UINT32 CPU_GET_NEXT_PC()
 	return CPU_TRANS_CODE_ADDR(CPU_CS, CPU_EIP);
 }
 #endif
+
+VC_DLL_EXPORTS int CPU_GET_REGPTR(int reglno);
+
+int CPU_GET_REGPTR(int reglno) {
+	switch(reglno){
+	case 0:
+		return (int)(&(CPU_STATSAVE.cpu_regs.reg));
+		break;
+	case 1:
+		return (int)(&(CPU_STATSAVE.cpu_regs.sreg));
+		break;
+	case 2:
+		return (int)(&(CPU_STATSAVE.cpu_stat.sreg));
+		break;
+	case 3:
+		return (int)(&(CPU_STATSAVE.cpu_stat));
+		break;
+	case 4:
+		return (int)(&(CPU_STATSAVE));
+		break;
+	case 5:
+		return (int)(&(i386core));
+		break;
+	}
+}
+
+
+VC_DLL_EXPORTS void CPU_EXECUTE_INFINITY(void);
+void CPU_EXECUTE_INFINITY(void) { while (true) { CPU_EXECUTE(); } }
+
+
