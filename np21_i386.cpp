@@ -1052,6 +1052,12 @@ int CPU_GET_REGPTR(int reglno) {
 	case 5:
 		return (int)(&(i386core));
 		break;
+	case 6:
+		return (int)(&(i386cpuid));
+		break;
+	case 7:
+		return (int)(&(i386msr));
+		break;
 	}
 }
 
