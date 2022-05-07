@@ -802,9 +802,47 @@ int CPU_EXECUTE()
 
 int CPU_EXECUTE_CC(int clockcount)
 {
-	int cc4internal = clockcount;
+	CPU_REMCLOCK = CPU_BASECLOCK = clockcount;
+	if (!CPU_TRAP) {
+		do {
+			exec_1step();
+			if (nmi_pending) {
+				CPU_INTERRUPT(2, 0);
+				nmi_pending = false;
+			}
+			else
+				if (irq_pending && CPU_isEI) {
+					CPU_INTERRUPT(pic_ack_vector, 0);
+					irq_pending = false;
+					//pic_update();
+				}
+			dmax86();
+		} while (CPU_REMCLOCK > 0);
+	}
+	else {
+		do {
+			exec_1step();
+			if (CPU_TRAP) {
+				CPU_DR6 |= CPU_DR6_BS;
+				INTERRUPT(1, INTR_TYPE_EXCEPTION);
+			}
+			if (nmi_pending) {
+				CPU_INTERRUPT(2, 0);
+				nmi_pending = false;
+			}
+			else
+				if (irq_pending && CPU_isEI) {
+					CPU_INTERRUPT(pic_ack_vector, 0);
+					irq_pending = false;
+					//pic_update();
+				}
+			dmax86();
+		} while (CPU_REMCLOCK > 0);
+	}
+		return CPU_BASECLOCK - CPU_REMCLOCK;
+	/*int cc4internal = clockcount;
 	while (cc4internal > 0) { cc4internal -= CPU_EXECUTE(); }
-	return cc4internal;
+	return cc4internal;*/
 #if 0
 	CPU_REMCLOCK = clockcount;
 	CPU_BASECLOCK = 0;
