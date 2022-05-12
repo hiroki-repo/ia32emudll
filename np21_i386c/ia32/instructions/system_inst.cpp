@@ -33,8 +33,8 @@
 /*
  * MS-DOS Player
  */
-/*extern UINT32 CPU_PREV_PC;
-extern int msdos_exit;*/
+extern UINT32 CPU_PREV_PC;
+//extern int msdos_exit;
 
 
 void CPUCALL

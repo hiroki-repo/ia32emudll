@@ -25,8 +25,6 @@
 
 //#include "compiler.h"
 
-#pragma warning( disable : 4703 )
-
 #if 0
 #undef	TRACEOUT
 #define USE_TRACEOUT_VS

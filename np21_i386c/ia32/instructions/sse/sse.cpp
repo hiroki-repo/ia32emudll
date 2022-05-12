@@ -25,8 +25,6 @@
 
 //#include "compiler.h"
 
-#pragma warning( disable : 4703 )
-
 #include <math.h>
 #include <float.h>
 
