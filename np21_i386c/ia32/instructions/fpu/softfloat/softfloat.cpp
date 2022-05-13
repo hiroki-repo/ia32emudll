@@ -27,6 +27,8 @@ code that are retained.
 
 //#ifdef SUPPORT_FPU_SOFTFLOAT
 
+#pragma warning( disable : 4146 )
+
 #ifndef INLINE
 	#ifdef __cplusplus
 		#define INLINE inline
