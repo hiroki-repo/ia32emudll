@@ -745,7 +745,7 @@ void CPU_RESET()
 //	CPU_RESET();
 	ia32reset();
 	CPU_TYPE = 0;
-	CS_BASE = 0xf0000;
+	//CS_BASE = 0xf0000;
 	CPU_CS = 0xf000;
 	CPU_IP = 0xfff0;
 	CPU_CLEARPREFETCH();
