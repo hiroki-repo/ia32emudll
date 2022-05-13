@@ -800,45 +800,81 @@ int CPU_EXECUTE()
 	return CPU_BASECLOCK - CPU_REMCLOCK;
 }
 
+extern "C" __declspec(dllexport) int CPU_EXECUTE_BC(int clockcount)
+{
+#ifdef USE_DEBUGGER
+	if (now_debugging) {
+		if (force_suspend) {
+			force_suspend = false;
+			now_suspended = true;
+		}
+		else {
+			UINT32 next_pc = CPU_GET_NEXT_PC();
+			for (int i = 0; i < MAX_BREAK_POINTS; i++) {
+				if (break_point.table[i].status == 1 && break_point.table[i].addr == next_pc) {
+					break_point.hit = i + 1;
+					now_suspended = true;
+					break;
+				}
+			}
+		}
+		while (now_debugging && now_suspended) {
+			Sleep(10);
+		}
+	}
+#endif
+
+	CPU_REMCLOCK = 1;
+	CPU_BASECLOCK = clockcount;
+	CPU_EXEC();
+	if (nmi_pending) {
+		CPU_INTERRUPT(2, 0);
+		nmi_pending = false;
+	}
+	else
+		if (irq_pending && CPU_isEI) {
+			CPU_INTERRUPT(pic_ack_vector, 0);
+			irq_pending = false;
+			//pic_update();
+		}
+	//	return CPU_BASECLOCK - CPU_REMCLOCK;
+
+#ifdef USE_DEBUGGER
+	if (now_debugging) {
+		if (!now_going) {
+			now_suspended = true;
+		}
+	}
+#endif
+	return - CPU_REMCLOCK;
+}
+extern "C" __declspec(dllexport) int CPU_EXECUTE_BCC(int clockcount) {
+	int cc4internal = clockcount;
+	do { cc4internal -= CPU_EXECUTE_BC(clockcount); } while (cc4internal > 0);
+	return cc4internal;
+}
+
 int CPU_EXECUTE_CC(int clockcount)
 {
 	CPU_REMCLOCK = CPU_BASECLOCK = clockcount;
-	if (!CPU_TRAP) {
-		do {
-			exec_1step();
-			if (nmi_pending) {
-				CPU_INTERRUPT(2, 0);
-				nmi_pending = false;
-			}
-			else
-				if (irq_pending && CPU_isEI) {
-					CPU_INTERRUPT(pic_ack_vector, 0);
-					irq_pending = false;
-					//pic_update();
-				}
-			dmax86();
-		} while (CPU_REMCLOCK > 0);
-	}
-	else {
 		do {
 			exec_1step();
 			if (CPU_TRAP) {
 				CPU_DR6 |= CPU_DR6_BS;
 				INTERRUPT(1, INTR_TYPE_EXCEPTION);
 			}
-			if (nmi_pending) {
-				CPU_INTERRUPT(2, 0);
-				nmi_pending = false;
+			else {
+				if (nmi_pending) {
+					CPU_INTERRUPT(2, 0);
+					nmi_pending = false;
+				} else if (irq_pending && CPU_isEI) {
+						CPU_INTERRUPT(pic_ack_vector, 0);
+						irq_pending = false;
+						//pic_update();
+					}
 			}
-			else
-				if (irq_pending && CPU_isEI) {
-					CPU_INTERRUPT(pic_ack_vector, 0);
-					irq_pending = false;
-					//pic_update();
-				}
 			dmax86();
 		} while (CPU_REMCLOCK > 0);
-	}
 		return CPU_BASECLOCK - CPU_REMCLOCK;
 	/*int cc4internal = clockcount;
 	while (cc4internal > 0) { cc4internal -= CPU_EXECUTE(); }
