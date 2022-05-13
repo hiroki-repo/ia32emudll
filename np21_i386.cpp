@@ -857,6 +857,26 @@ extern "C" __declspec(dllexport) int CPU_EXECUTE_BCC(int clockcount) {
 int CPU_EXECUTE_CC(int clockcount)
 {
 	CPU_REMCLOCK = CPU_BASECLOCK = clockcount;
+#ifdef __cplusplus
+	try {
+#else
+	switch (sigsetjmp(exec_1step_jmpbuf, 1)) {
+	case 0:
+		break;
+
+	case 1:
+		VERBOSE(("ia32: return from exception"));
+		break;
+
+	case 2:
+		VERBOSE(("ia32: return from panic"));
+		return;
+
+	default:
+		VERBOSE(("ia32: return from unknown cause"));
+		break;
+	}
+#endif
 		do {
 			exec_1step();
 			if (CPU_TRAP) {
@@ -865,16 +885,38 @@ int CPU_EXECUTE_CC(int clockcount)
 			}
 			else {
 				if (nmi_pending) {
-					CPU_INTERRUPT(2, 0);
+					INTERRUPT(2, 0);
 					nmi_pending = false;
 				} else if (irq_pending && CPU_isEI) {
-						CPU_INTERRUPT(pic_ack_vector, 0);
+						INTERRUPT(pic_ack_vector, 0);
 						irq_pending = false;
 						//pic_update();
 					}
 			}
 			dmax86();
 		} while (CPU_REMCLOCK > 0);
+#ifdef __cplusplus
+	}
+catch (int e) {
+	switch (e) {
+	case 0:
+		break;
+
+	case 1:
+		VERBOSE(("ia32: return from exception"));
+		break;
+
+	case 2:
+		VERBOSE(("ia32: return from panic"));
+		return CPU_BASECLOCK - CPU_REMCLOCK;
+
+	default:
+		VERBOSE(("ia32: return from unknown cause"));
+		break;
+	}
+}
+#endif
+
 		return CPU_BASECLOCK - CPU_REMCLOCK;
 	/*int cc4internal = clockcount;
 	while (cc4internal > 0) { cc4internal -= CPU_EXECUTE(); }
