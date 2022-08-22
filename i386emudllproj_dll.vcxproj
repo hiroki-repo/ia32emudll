@@ -56,7 +56,7 @@
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|ARM'" Label="Configuration">
     <ConfigurationType>DynamicLibrary</ConfigurationType>
     <UseDebugLibraries>false</UseDebugLibraries>
-    <PlatformToolset>v140_xp</PlatformToolset>
+    <PlatformToolset>v142</PlatformToolset>
     <WholeProgramOptimization>true</WholeProgramOptimization>
     <CharacterSet>Unicode</CharacterSet>
   </PropertyGroup>
@@ -261,6 +261,7 @@
     <ClCompile Include="np21_i386c\ia32\instructions\system_inst.cpp" />
     <ClCompile Include="np21_i386c\ia32\inst_table.cpp" />
     <ClCompile Include="np21_i386c\ia32\interface.cpp" />
+    <ClCompile Include="np21_i386c\ia32\jit.cpp" />
     <ClCompile Include="np21_i386c\ia32\paging.cpp" />
     <ClCompile Include="np21_i386c\ia32\resolve.cpp" />
     <ClCompile Include="np21_i386c\ia32\segments.cpp" />

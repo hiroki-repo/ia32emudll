@@ -30,10 +30,6 @@ static void trace_fmt_ex(const char *fmt, ...)
 #include	"i386hax/haxcore.h"
 #endif
 
-#ifdef CPU_USE_JIT
-#include "ia32/jit.h"
-#endif
-
 UINT32 codefetch_address;
 
 // ----
@@ -90,86 +86,38 @@ UINT32 MEMCALL memp_read32_paging(UINT32 address) {
 }
 
 void MEMCALL memp_write8(UINT32 address, REG8 value) {
-
+	
 	address = address & CPU_ADRSMASK;
-#ifdef CPU_USE_JIT
-	if (JIT_CACHE_INFO[((address >> 12) & 0x000FFFFF)].jitinfo & (1 << (CPU_INST_OP32 ? 1 : 0))) {
-		JIT_CACHE_INFO[((address >> 12) & 0x000FFFFF)].jitinfo &= ~(1 << (CPU_INST_OP32 ? 1 : 0));
-		if (CPU_INST_OP32) { JIT_CACHE_INFO[((CPU_EIP >> 12) & 0x000FFFFF)].jit32lp = 0; } else { JIT_CACHE_INFO[((CPU_EIP >> 12) & 0x000FFFFF)].jit16lp = 0; }
-		if (CPU_INST_OP32) { free(JIT_CACHE_INFO[((address >> 12) & 0x000FFFFF)].jit32); }
-		else { free(JIT_CACHE_INFO[((address >> 12) & 0x000FFFFF)].jit16); }
-}
-#endif
 	write_byte(address, value);
 }
 
 void MEMCALL memp_write16(UINT32 address, REG16 value) {
-
+	
 	address = address & CPU_ADRSMASK;
-#ifdef CPU_USE_JIT
-	if (JIT_CACHE_INFO[((address >> 12)&0x000FFFFF)].jitinfo & (1 << (CPU_INST_OP32 ? 1 : 0))) {
-		JIT_CACHE_INFO[((address >> 12)&0x000FFFFF)].jitinfo &= ~(1 << (CPU_INST_OP32 ? 1 : 0));
-		if (CPU_INST_OP32) { JIT_CACHE_INFO[((CPU_EIP >> 12) & 0x000FFFFF)].jit32lp = 0; } else { JIT_CACHE_INFO[((CPU_EIP >> 12) & 0x000FFFFF)].jit16lp = 0; }
-		if (CPU_INST_OP32) { free(JIT_CACHE_INFO[((address >> 12)&0x000FFFFF)].jit32); }
-		else { free(JIT_CACHE_INFO[((address >> 12)&0x000FFFFF)].jit16); }
-	}
-#endif
 	write_word(address, value);
 }
 
 void MEMCALL memp_write32(UINT32 address, UINT32 value) {
-
+	
 	address = address & CPU_ADRSMASK;
-#ifdef CPU_USE_JIT
-	if (JIT_CACHE_INFO[((address >> 12)&0x000FFFFF)].jitinfo & (1 << (CPU_INST_OP32 ? 1 : 0))) {
-		JIT_CACHE_INFO[((address >> 12)&0x000FFFFF)].jitinfo &= ~(1 << (CPU_INST_OP32 ? 1 : 0));
-		if (CPU_INST_OP32) { JIT_CACHE_INFO[((CPU_EIP >> 12) & 0x000FFFFF)].jit32lp = 0; } else { JIT_CACHE_INFO[((CPU_EIP >> 12) & 0x000FFFFF)].jit16lp = 0; }
-		if (CPU_INST_OP32) { free(JIT_CACHE_INFO[((address >> 12)&0x000FFFFF)].jit32); }
-		else { free(JIT_CACHE_INFO[((address >> 12)&0x000FFFFF)].jit16); }
-	}
-#endif
 	write_dword(address, value);
 }
 
 void MEMCALL memp_write8_paging(UINT32 address, REG8 value) {
-
+	
 	address = address & CPU_ADRSMASK;
-#ifdef CPU_USE_JIT
-	if (JIT_CACHE_INFO[((address >> 12)&0x000FFFFF)].jitinfo & (1 << (CPU_INST_OP32 ? 1 : 0))) {
-		JIT_CACHE_INFO[((address >> 12)&0x000FFFFF)].jitinfo &= ~(1 << (CPU_INST_OP32 ? 1 : 0));
-		if (CPU_INST_OP32) { JIT_CACHE_INFO[((CPU_EIP >> 12) & 0x000FFFFF)].jit32lp = 0; } else { JIT_CACHE_INFO[((CPU_EIP >> 12) & 0x000FFFFF)].jit16lp = 0; }
-		if (CPU_INST_OP32) { free(JIT_CACHE_INFO[((address >> 12)&0x000FFFFF)].jit32); }
-		else { free(JIT_CACHE_INFO[((address >> 12)&0x000FFFFF)].jit16); }
-	}
-#endif
 	write_byte(address, value);
 }
 
 void MEMCALL memp_write16_paging(UINT32 address, REG16 value) {
-
+	
 	address = address & CPU_ADRSMASK;
-#ifdef CPU_USE_JIT
-	if (JIT_CACHE_INFO[((address >> 12)&0x000FFFFF)].jitinfo & (1 << (CPU_INST_OP32 ? 1 : 0))) {
-		JIT_CACHE_INFO[((address >> 12)&0x000FFFFF)].jitinfo &= ~(1 << (CPU_INST_OP32 ? 1 : 0));
-		if (CPU_INST_OP32) { JIT_CACHE_INFO[((CPU_EIP >> 12) & 0x000FFFFF)].jit32lp = 0; } else { JIT_CACHE_INFO[((CPU_EIP >> 12) & 0x000FFFFF)].jit16lp = 0; }
-		if (CPU_INST_OP32) { free(JIT_CACHE_INFO[((address >> 12)&0x000FFFFF)].jit32); }
-		else { free(JIT_CACHE_INFO[((address >> 12)&0x000FFFFF)].jit16); }
-	}
-#endif
 	write_word(address, value);
 }
 
 void MEMCALL memp_write32_paging(UINT32 address, UINT32 value) {
-
+	
 	address = address & CPU_ADRSMASK;
-#ifdef CPU_USE_JIT
-	if (JIT_CACHE_INFO[((address >> 12)&0x000FFFFF)].jitinfo & (1 << (CPU_INST_OP32 ? 1 : 0))) {
-		JIT_CACHE_INFO[((address >> 12)&0x000FFFFF)].jitinfo &= ~(1 << (CPU_INST_OP32 ? 1 : 0));
-		if (CPU_INST_OP32) { JIT_CACHE_INFO[((CPU_EIP >> 12) & 0x000FFFFF)].jit32lp = 0; } else { JIT_CACHE_INFO[((CPU_EIP >> 12) & 0x000FFFFF)].jit16lp = 0; }
-		if (CPU_INST_OP32) { free(JIT_CACHE_INFO[((address >> 12)&0x000FFFFF)].jit32); }
-		else { free(JIT_CACHE_INFO[((address >> 12)&0x000FFFFF)].jit16); }
-	}
-#endif
 	write_dword(address, value);
 }
 

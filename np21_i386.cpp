@@ -1181,4 +1181,19 @@ int CPU_GET_REGPTR(int reglno) {
 VC_DLL_EXPORTS void CPU_EXECUTE_INFINITY(void);
 void CPU_EXECUTE_INFINITY(void) { while (true) { CPU_EXECUTE(); } }
 
+#include "np21_i386c/ia32/inst_table.h"
+#include "np21_i386c/cpumem.h"
+
+#include "np21_i386c/ia32/jit.h"
+
+#ifdef CPU_USE_JIT
+__declspec(dllexport) void CPU_JIT_EXECUTE(void) {
+	CPU_REMCLOCK = CPU_BASECLOCK = 0x7FFFFFFF;
+	while (true) {
+		execjit();
+		if (CPU_REMCLOCK <= 0) { CPU_REMCLOCK = 0x7FFFFFFF; }
+	}
+}
+#endif
+
 
