@@ -1184,9 +1184,9 @@ void CPU_EXECUTE_INFINITY(void) { while (true) { CPU_EXECUTE(); } }
 #include "np21_i386c/ia32/inst_table.h"
 #include "np21_i386c/cpumem.h"
 
+#ifdef CPU_USE_JIT
 #include "np21_i386c/ia32/jit.h"
 
-#ifdef CPU_USE_JIT
 __declspec(dllexport) void CPU_JIT_EXECUTE(void) {
 	CPU_REMCLOCK = CPU_BASECLOCK = 0x7FFFFFFF;
 	while (true) {
@@ -1196,4 +1196,7 @@ __declspec(dllexport) void CPU_JIT_EXECUTE(void) {
 }
 #endif
 
-
+__declspec(dllexport) void CPU_EXECUTE_BY_NUM_OF_INSTS(UINT32 noi4prm_0) {
+	UINT32 noi = noi4prm_0;
+	while (noi != 0) { exec_1step(); noi--; }
+}
