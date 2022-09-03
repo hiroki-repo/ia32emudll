@@ -160,7 +160,7 @@ UINT32 read_dword(UINT32 byteaddress)
 			return i386memaccess(((int)byteaddress) + 0, 0, 1 | 0x20);
 		}
 		else {
-			return (((i386memaccess(((int)byteaddress) + 0, 0, 1 | 0x20)>>(8 * (byteaddress & 3)))&((1<<(8 * (byteaddress & 3)))-1))|(((i386memaccess(((int)byteaddress) + 4, 0, 1 | 0x20)>>(8 * (4-(byteaddress & 3))))&((1<<(8 * (4-(byteaddress & 3))))-1))<<(8 * (byteaddress & 3))))&0xFFFFFFFF;
+			return (((i386memaccess(((int)byteaddress) + 0, 0, 1 | 0x20)>>(8 * (byteaddress & 3)))&((1<<(8 * (byteaddress & 3)))-1))|(((i386memaccess(((int)byteaddress) + 4, 0, 1 | 0x20)>>(8 * 0))&((1<<(8 * (4-(byteaddress & 3))))-1))<<(8 * (byteaddress & 3))))&0xFFFFFFFF;
 		}
 	}
 }
