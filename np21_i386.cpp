@@ -116,58 +116,110 @@ void CPU_BUS_SIZE_CHANGE(int size) {
 
 UINT8 read_byte(UINT32 byteaddress)
 {
-	return ((i386memaccess(((int)byteaddress) + 0, 0, 1) & 0xFF) << (8 * 0));
+	if (((cpubussize >> 16) & 0xF) == 0) {
+		return ((i386memaccess(((int)byteaddress) + 0, 0, 1) & 0xFF) << (8 * 0));
+	}
+	else {
+		return ((i386memaccess(((int)byteaddress) + 0, 0, 1) >> (8 * (byteaddress & 3))) & 0xFF);
+	}
 }
 UINT16 read_word(UINT32 byteaddress)
 {
-	if (((cpubussize >> 0) & 0xFF) == 0) {
-		return ((i386memaccess(((int)byteaddress) + 0, 0, 1) & 0xFF) << (8 * 0)) | ((i386memaccess(((int)byteaddress) + 1, 0, 1) & 0xFF) << (8 * 1));
+	if (((cpubussize >> 16) & 0xF) == 0) {
+		if (((cpubussize >> 0) & 0xFF) == 0) {
+			return ((i386memaccess(((int)byteaddress) + 0, 0, 1) & 0xFF) << (8 * 0)) | ((i386memaccess(((int)byteaddress) + 1, 0, 1) & 0xFF) << (8 * 1));
+		}
+		else if (((cpubussize >> 0) & 0xFF) >= 1) {
+			return ((i386memaccess(((int)byteaddress) + 0, 0, 1 | 0x10) & 0xFFFF) << (16 * 0));
+		}
 	}
-	else if (((cpubussize >> 0) & 0xFF) >= 1) {
-		return ((i386memaccess(((int)byteaddress) + 0, 0, 1 | 0x10) & 0xFFFF) << (16 * 0));
+	else {
+		if ((byteaddress & 3) == 3) { 
+			return ((((i386memaccess(((int)byteaddress) + 0, 0, 1 | 0x10) >> (8 * 3)) & 0xFF) | ((i386memaccess(((int)byteaddress) + 1, 0, 1 | 0x10) << (8 * 1)) & 0xFF00)) & 0xFFFF);
+		}
+		else {
+			return ((i386memaccess(((int)byteaddress) + 0, 0, 1 | 0x10) >> (8 * (byteaddress & 3))) & 0xFFFF);
+		}
 	}
 }
 UINT32 read_dword(UINT32 byteaddress)
 {
-	if (((cpubussize >> 0) & 0xFF) == 0) {
-		return ((i386memaccess(((int)byteaddress) + 0, 0, 1) & 0xFF) << (8 * 0)) | ((i386memaccess(((int)byteaddress) + 1, 0, 1) & 0xFF) << (8 * 1)) | ((i386memaccess(((int)byteaddress) + 2, 0, 1) & 0xFF) << (8 * 2)) | ((i386memaccess(((int)byteaddress) + 3, 0, 1) & 0xFF) << (8 * 3));
+	if (((cpubussize >> 16) & 0xF) == 0) {
+		if (((cpubussize >> 0) & 0xFF) == 0) {
+			return ((i386memaccess(((int)byteaddress) + 0, 0, 1) & 0xFF) << (8 * 0)) | ((i386memaccess(((int)byteaddress) + 1, 0, 1) & 0xFF) << (8 * 1)) | ((i386memaccess(((int)byteaddress) + 2, 0, 1) & 0xFF) << (8 * 2)) | ((i386memaccess(((int)byteaddress) + 3, 0, 1) & 0xFF) << (8 * 3));
+		}
+		else if (((cpubussize >> 0) & 0xFF) == 1) {
+			return ((i386memaccess(((int)byteaddress) + 0, 0, 1 | 0x10) & 0xFFFF) << (16 * 0)) | ((i386memaccess(((int)byteaddress) + 2, 0, 1 | 0x10) & 0xFFFF) << (16 * 1));
+		}
+		else if (((cpubussize >> 0) & 0xFF) >= 2) {
+			return i386memaccess(((int)byteaddress) + 0, 0, 1 | 0x20);
+		}
 	}
-	else if (((cpubussize >> 0) & 0xFF) == 1) {
-		return ((i386memaccess(((int)byteaddress) + 0, 0, 1 | 0x10) & 0xFFFF) << (16 * 0))| ((i386memaccess(((int)byteaddress) + 2, 0, 1 | 0x10) & 0xFFFF) << (16 * 1));
-	}
-	else if (((cpubussize >> 0) & 0xFF) >= 2) {
-		return i386memaccess(((int)byteaddress) + 0, 0, 1 | 0x20);
+	else {
+		if ((byteaddress & 3) == 0) {
+			return i386memaccess(((int)byteaddress) + 0, 0, 1 | 0x20);
+		}
+		else {
+			return (((i386memaccess(((int)byteaddress) + 0, 0, 1 | 0x20)>>(8 * (byteaddress & 3)))&((1<<(8 * (byteaddress & 3)))-1))|(((i386memaccess(((int)byteaddress) + 4, 0, 1 | 0x20)>>(8 * (4-(byteaddress & 3))))&((1<<(8 * (4-(byteaddress & 3))))-1))<<(8 * (byteaddress & 3))))&0xFFFFFFFF;
+		}
 	}
 }
 
 void write_byte(UINT32 byteaddress, UINT8 data)
 {
-	i386memaccess(((int)byteaddress) + 0, (UINT8) data, 0);
+	if (((cpubussize >> 16) & 0xF) == 0) {
+		i386memaccess(((int)byteaddress) + 0, (UINT8)data, 0);
+	}
+	else {
+		i386memaccess(((int)byteaddress) + 0, (read_dword(byteaddress&0xFFFFFFFC)&(~(0xFF<<(8*(byteaddress&3)))))|(((UINT8)data)<<(8*(byteaddress&3))), 0);
+	}
 }
 void write_word(UINT32 byteaddress, UINT16 data)
 {
-	if (((cpubussize >> 0) & 0xFF) == 0) {
+	if (((cpubussize >> 16) & 0xF) == 0) {
+		if (((cpubussize >> 0) & 0xFF) == 0) {
 		i386memaccess(((int)byteaddress) + 0, (UINT8)(data >> (8 * 0)), 0);
 		i386memaccess(((int)byteaddress) + 1, (UINT8)(data >> (8 * 1)), 0);
 	}
 	else if (((cpubussize >> 0) & 0xFF) >= 1) {
 		i386memaccess(((int)byteaddress) + 0, (data >> (16 * 0)), 0 | 0x10);
 	}
+	}
+	else {
+		if ((byteaddress & 3) == 3) {
+			i386memaccess(((int)byteaddress) + 0, (read_dword(byteaddress&0xFFFFFFFC)&(~(0xFF<<(8*(byteaddress&3)))))|((data << (8 * 3))&0xFF000000), 0 | 0x10);
+			i386memaccess(((int)byteaddress) + 1, (read_dword((byteaddress+1)&0xFFFFFFFC)&(~(0xFF<<(8*0))))|((data >> (8 * 1))&0xFF), 0 | 0x10);
+		}
+		else {
+			i386memaccess(((int)byteaddress) + 0, (read_dword(byteaddress&0xFFFFFFFC)&(~(0xFFFF<<(8*(byteaddress&3)))))|(data << (8 * (byteaddress&3))), 0 | 0x10);
+		}
+	}
 }
 void write_dword(UINT32 byteaddress, UINT32 data)
 {
-	if (((cpubussize >> 0) & 0xFF) == 0) {
-		i386memaccess(((int)byteaddress) + 0, (UINT8)(data >> (8 * 0)), 0);
-		i386memaccess(((int)byteaddress) + 1, (UINT8)(data >> (8 * 1)), 0);
-		i386memaccess(((int)byteaddress) + 2, (UINT8)(data >> (8 * 2)), 0);
-		i386memaccess(((int)byteaddress) + 3, (UINT8)(data >> (8 * 3)), 0);
+	if (((cpubussize >> 16) & 0xF) == 0) {
+		if (((cpubussize >> 0) & 0xFF) == 0) {
+			i386memaccess(((int)byteaddress) + 0, (UINT8)(data >> (8 * 0)), 0);
+			i386memaccess(((int)byteaddress) + 1, (UINT8)(data >> (8 * 1)), 0);
+			i386memaccess(((int)byteaddress) + 2, (UINT8)(data >> (8 * 2)), 0);
+			i386memaccess(((int)byteaddress) + 3, (UINT8)(data >> (8 * 3)), 0);
+		}
+		else if (((cpubussize >> 0) & 0xFF) == 1) {
+			i386memaccess(((int)byteaddress) + 0, (data >> (16 * 0)), 0 | 0x10);
+			i386memaccess(((int)byteaddress) + 2, (data >> (16 * 1)), 0 | 0x10);
+		}
+		else if (((cpubussize >> 0) & 0xFF) >= 2) {
+			i386memaccess(((int)byteaddress) + 0, (data), 0 | 0x20);
+		}
 	}
-	else if (((cpubussize >> 0) & 0xFF) == 1) {
-		i386memaccess(((int)byteaddress) + 0, (data >> (16 * 0)), 0 | 0x10);
-		i386memaccess(((int)byteaddress) + 2, (data >> (16 * 1)), 0 | 0x10);
-	}
-	else if (((cpubussize >> 0) & 0xFF) >= 2) {
-		i386memaccess(((int)byteaddress) + 0, (data), 0 | 0x20);
+	else {
+		if ((byteaddress & 3) == 0) {
+			i386memaccess(((int)byteaddress) + 0, (data), 0 | 0x20);
+		}
+		else {
+			i386memaccess(((int)byteaddress) + 0, ((read_dword(byteaddress&0xFFFFFFFC)&((1<<(8*(byteaddress&3)))-1))|((data<<(8*(byteaddress & 3)))&(~((1<<(8*(byteaddress & 3)))-1)))), 0 | 0x20);
+			i386memaccess(((int)byteaddress) + 4, ((read_dword((byteaddress+4)&0xFFFFFFFC)&(((1<<(8*(byteaddress&3)))-1)<<(8*(4-(byteaddress&3)))))|((data>>(8*(byteaddress & 3)))&((1<<(8*(4-(byteaddress & 3))))-1))), 0 | 0x20);
+		}
 	}
 }
 
@@ -181,7 +233,7 @@ UINT16 read_io_word(UINT32 byteaddress)
 		return ((i386memaccess(((int)byteaddress) + 0, 0, 3) & 0xFF) << (8 * 0)) | ((i386memaccess(((int)byteaddress) + 1, 0, 3) & 0xFF) << (8 * 1));
 	}
 	else if (((cpubussize >> 8) & 0xFF) >= 1) {
-		return (i386memaccess(((int)byteaddress) + 0, 0, 3) & 0xFFFF | 0x10);
+		return (i386memaccess(((int)byteaddress) + 0, 0, 3 | 0x10) & 0xFFFF);
 	}
 }
 UINT32 read_io_dword(UINT32 byteaddress)
