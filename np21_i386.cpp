@@ -218,7 +218,7 @@ void write_dword(UINT32 byteaddress, UINT32 data)
 		}
 		else {
 			i386memaccess(((int)byteaddress) + 0, ((read_dword(byteaddress&0xFFFFFFFC)&((1<<(8*(byteaddress&3)))-1))|((data<<(8*(byteaddress & 3)))&(~((1<<(8*(byteaddress & 3)))-1)))), 0 | 0x20);
-			i386memaccess(((int)byteaddress) + 4, ((read_dword((byteaddress+4)&0xFFFFFFFC)&(((1<<(8*(byteaddress&3)))-1)<<(8*(4-(byteaddress&3)))))|((data>>(8*(byteaddress & 3)))&((1<<(8*(4-(byteaddress & 3))))-1))), 0 | 0x20);
+			i386memaccess(((int)byteaddress) + 4, ((read_dword((byteaddress+4)&0xFFFFFFFC)&(((1<<(8*(4-(byteaddress&3))))-1)<<(8*(byteaddress&3))))|((data>>(8*(4-(byteaddress & 3))))&((1<<(8*(byteaddress & 3)))-1))), 0 | 0x20);
 		}
 	}
 }
