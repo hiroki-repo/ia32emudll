@@ -1198,33 +1198,33 @@ UINT32 CPU_GET_NEXT_PC()
 }
 #endif
 
-VC_DLL_EXPORTS int CPU_GET_REGPTR(int reglno);
+VC_DLL_EXPORTS void* CPU_GET_REGPTR(int reglno);
 
-int CPU_GET_REGPTR(int reglno) {
+void* CPU_GET_REGPTR(int reglno) {
 	switch(reglno){
 	case 0:
-		return (int)(&(CPU_STATSAVE.cpu_regs.reg));
+		return (&(CPU_STATSAVE.cpu_regs.reg));
 		break;
 	case 1:
-		return (int)(&(CPU_STATSAVE.cpu_regs.sreg));
+		return (&(CPU_STATSAVE.cpu_regs.sreg));
 		break;
 	case 2:
-		return (int)(&(CPU_STATSAVE.cpu_stat.sreg));
+		return (&(CPU_STATSAVE.cpu_stat.sreg));
 		break;
 	case 3:
-		return (int)(&(CPU_STATSAVE.cpu_stat));
+		return (&(CPU_STATSAVE.cpu_stat));
 		break;
 	case 4:
-		return (int)(&(CPU_STATSAVE));
+		return (&(CPU_STATSAVE));
 		break;
 	case 5:
-		return (int)(&(i386core));
+		return (&(i386core));
 		break;
 	case 6:
-		return (int)(&(i386cpuid));
+		return (&(i386cpuid));
 		break;
 	case 7:
-		return (int)(&(i386msr));
+		return (&(i386msr));
 		break;
 	}
 }

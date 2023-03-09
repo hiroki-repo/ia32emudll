@@ -152,6 +152,9 @@ ret
 0000:C3
 */
 BYTE jitend[] = { 0xC3 };
+#else
+BYTE jitend[] = { 0x00 };
+BYTE jittemplate[] = { 0x00 };
 #endif
 #endif
 
@@ -498,7 +501,7 @@ void genjitcode() {
 		*(DWORD*)(jittemplate + 0x44) = 1;
 		op = cpu_codefetch((*(DWORD*)(jittemplate + 0x50)) + cnt4translate);
 		if (op == 0x0f) {
-			op = cpu_codefetch((*(DWORD*)(jittemplate + 0x1f)) + cnt4translate + 1);
+			op = cpu_codefetch((*(DWORD*)(jittemplate + 0x50)) + cnt4translate + 1);
 			*(DWORD*)(jittemplate + 0x44) = 2;
 			*(DWORD*)(jittemplate + 0x34) = (DWORD)insttable_2byte[CPU_INST_OP32][op];
 		} else if (insttable_info[op] & INST_PREFIX) {
