@@ -29,11 +29,11 @@ VC_DLL_EXPORTS void CPU_SET_S_FLAG(UINT8 value);
 VC_DLL_EXPORTS void CPU_SET_I_FLAG(UINT8 value);
 VC_DLL_EXPORTS void CPU_SET_IOP_FLAG(UINT8 value);
 VC_DLL_EXPORTS void CPU_SET_NT_FLAG(UINT8 value);
-VC_DLL_EXPORTS void CPU_SET_VM_FLAG(UINT8 value);
-VC_DLL_EXPORTS void CPU_SET_CR0(UINT32 src);
+//VC_DLL_EXPORTS void CPU_SET_VM_FLAG(UINT8 value);
+//VC_DLL_EXPORTS void CPU_SET_CR0(UINT32 src);
 VC_DLL_EXPORTS void CPU_SET_CR3(UINT32 value);
 VC_DLL_EXPORTS void CPU_SET_CPL(int value);
-VC_DLL_EXPORTS void CPU_SET_EFLAG(UINT32 new_flags);
+//VC_DLL_EXPORTS void CPU_SET_EFLAG(UINT32 new_flags);
 VC_DLL_EXPORTS void CPU_A20_LINE(UINT8 value);
 VC_DLL_EXPORTS void CPU_IRQ_LINE(BOOL state);
 VC_DLL_EXPORTS void CPU_INIT();
@@ -99,6 +99,8 @@ VC_DLL_EXPORTS void CPU_SET_GDTR_BASE(UINT32 regdata);
 VC_DLL_EXPORTS void CPU_BUS_SIZE_CHANGE(int size);
 VC_DLL_EXPORTS void CPU_REQ_INTERRUPT_IN(int vect);
 VC_DLL_EXPORTS void CPU_REQ_NMINTERRUPT_IN();
+VC_DLL_EXPORTS void CPU__SET_EFLAG(UINT32 new_flags);
+VC_DLL_EXPORTS void CPU__SET_VM_FLAG(UINT8 value);
 
 UINT32(*i386memaccess) (int, int, int);
 
@@ -447,11 +449,6 @@ UINT32 CPU__GET_CR0()
 	return CPU_CR0;
 }
 
-void CPU__SET_CR0(UINT32 regdata)
-{
-	CPU_CR0 = regdata;
-}
-
 UINT32 CPU__GET_CR1()
 {
 	return CPU_CR1;
@@ -475,11 +472,6 @@ void CPU__SET_CR2(UINT32 regdata)
 UINT32 CPU__GET_CR3()
 {
 	return CPU_CR3;
-}
-
-void CPU__SET_CR3(UINT32 regdata)
-{
-	CPU_CR3 = regdata;
 }
 
 UINT32 CPU__GET_CR4()
@@ -660,6 +652,10 @@ inline void CPU_SET_VM_FLAG(UINT8 value)
 	}
 }
 
+void CPU__SET_VM_FLAG(UINT8 value) {
+	CPU_SET_VM_FLAG(value);
+}
+
 inline void CPU_SET_CR0(UINT32 src)
 {
 	// from MOV_CdRd(void) in ia32/instructions/system_inst.c
@@ -703,9 +699,20 @@ inline void CPU_SET_CR0(UINT32 src)
 	CPU_STAT_WP = (CPU_CR0 & CPU_CR0_WP) ? 0x10 : 0;
 }
 
+void CPU__SET_CR0(UINT32 regdata)
+{
+	CPU_SET_CR0(regdata);
+	//CPU_CR0 = regdata;
+}
+
 inline void CPU_SET_CR3(UINT32 value)
 {
 	set_cr3(value);
+}
+
+void CPU__SET_CR3(UINT32 regdata)
+{
+	set_cr3(regdata);
 }
 
 inline void CPU_SET_CPL(int value)
@@ -734,6 +741,10 @@ inline void CPU_SET_EFLAG(UINT32 new_flags)
 			}
 		}
 	}
+}
+
+void CPU__SET_EFLAG(UINT32 new_flags) {
+	CPU_SET_EFLAG(new_flags);
 }
 
 inline void CPU_A20_LINE(UINT8 value)
