@@ -1003,6 +1003,12 @@ catch (int e) {
 #endif
 }
 
+extern "C" __declspec(dllexport) int CPU_EXECUTE_CC_V2(int clockcount) {
+	CPU_REMCLOCK = CPU_BASECLOCK = clockcount;
+	exec_allstep();
+	return CPU_BASECLOCK - CPU_REMCLOCK;
+}
+
 void CPU_SOFT_INTERRUPT(int vect)
 {
 	CPU_INTERRUPT(vect, 1);

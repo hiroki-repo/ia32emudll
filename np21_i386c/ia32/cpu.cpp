@@ -295,7 +295,7 @@ exec_1step(void)
 	}
 }
 
-#if 0
+#if 1
 void
 exec_allstep(void)
 {
