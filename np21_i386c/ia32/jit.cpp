@@ -198,9 +198,10 @@ void ADDEIPAddr(int prm_0){
 }
 
 void* emalloc(size_t sizeofcode){
-	void* ret = malloc(sizeofcode);
-	DWORD tmp;
-	if (ret != 0) { VirtualProtect(ret, sizeofcode, PAGE_EXECUTE_READWRITE, &tmp); }
+	//void* ret = malloc(sizeofcode);
+	void* ret = VirtualAlloc(0, sizeofcode, 0x3000, PAGE_EXECUTE_READWRITE);
+	//DWORD tmp;
+	//if (ret != 0) { VirtualProtect(ret, sizeofcode, PAGE_EXECUTE_READWRITE, &tmp); }
 	//printf("%08X\n", ret);
 	return ret;
 }
@@ -486,10 +487,27 @@ exec_1step_internal(void)
 	}
 }
 
+UINT32 getmovrr32(int prm_0, int prm_1) { return (0x2A0003E0 | ((prm_0 & 0x1f) << 24) | ((prm_1 & 0x1f) << 8)); }
+
 void genjitcode() {
 	int prefix;
 	UINT32 op=0;
 	int opold=-1;
+#ifdef _ARM64_
+	BYTE* jittmp = (BYTE*)malloc(4096*8+4096);
+	UINT32 jittmppls, jittmpplsold;
+	jittmppls = 0;
+	UINT64 eiptmpp = laddr_to_paddr(GetNowEIP4ACC(CPU_EIP) & 0xFFFFF000, CPU_PAGE_READ_CODE | CPU_STAT_USER_MODE);
+	UINT64 eiptmpl = CPU_EIP & 0xFFFFF000;
+	for (int cnt4translate = 0; cnt4translate < 4096; cnt4translate++) {
+		*(DWORD*)(jittmp + jittmppls + 4096) = 0; jittmppls += 4;
+		jittmpplsold = jittmppls;
+	}
+	if (CPU_INST_OP32) { JIT_CACHE_INFO[(((*(DWORD*)(jittemplate + 0x24)) >> 12) & 0x000FFFFF)].jit32 = jittmp; }
+	else { JIT_CACHE_INFO[(((*(DWORD*)(jittemplate + 0x24)) >> 12) & 0x000FFFFF)].jit16 = jittmp; }
+
+	JIT_CACHE_INFO[(((*(DWORD*)(jittemplate + 0x24)) >> 12) & 0x000FFFFF)].jitinfo |= (1 << (CPU_INST_OP32 ? 1 : 0));
+#else
 	BYTE* jittmp = (BYTE*)emalloc(sizeof(jittemplate) * 4096);
 #ifdef _ARM_
 	*(DWORD*)(jittemplate+0x4c) = laddr_to_paddr(GetNowEIP4ACC(CPU_EIP) & 0xFFFFF000, CPU_PAGE_READ_CODE | CPU_STAT_USER_MODE);
@@ -553,6 +571,7 @@ void genjitcode() {
 	JIT_CACHE_INFO[(((*(DWORD*)(jittemplate+0x24)) >> 12) & 0x000FFFFF)].jitinfo |= (1 << (CPU_INST_OP32 ? 1 : 0));
 #endif
 #endif
+#endif
 	FlushInstructionCache(GetCurrentProcess(), jittmp, sizeof(jittemplate) * 4096);
 }
 
@@ -578,9 +597,9 @@ void execjit() {
 			CPU_STATSAVE.cpu_inst = CPU_STATSAVE.cpu_inst_default;
 		}
 		if (CPU_INST_OP32) {
-			((typeofrunjitedopcodes*)(((DWORD)JIT_CACHE_INFO[((GetNowEIP4ACC(CPU_EIP) >> 12) & 0x000FFFFF)].jit32) + ((GetNowEIP4ACC(CPU_EIP) & 0xFFF) * sizeof(jittemplate))))();
+			((typeofrunjitedopcodes*)(((UINT64)JIT_CACHE_INFO[((GetNowEIP4ACC(CPU_EIP) >> 12) & 0x000FFFFF)].jit32) + ((GetNowEIP4ACC(CPU_EIP) & 0xFFF) * sizeof(jittemplate))))();
 		}
-		else { ((typeofrunjitedopcodes*)(((DWORD)JIT_CACHE_INFO[((GetNowEIP4ACC(CPU_EIP) >> 12) & 0x000FFFFF)].jit16) + ((GetNowEIP4ACC(CPU_EIP) & 0xFFF) * sizeof(jittemplate))))(); }
+		else { ((typeofrunjitedopcodes*)(((UINT64)JIT_CACHE_INFO[((GetNowEIP4ACC(CPU_EIP) >> 12) & 0x000FFFFF)].jit16) + ((GetNowEIP4ACC(CPU_EIP) & 0xFFF) * sizeof(jittemplate))))(); }
 	//}
 	//printf("EIP:%08X\n", CPU_EIP);
 }
