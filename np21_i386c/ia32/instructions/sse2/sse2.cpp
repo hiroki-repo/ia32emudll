@@ -64,15 +64,15 @@ static void trace_fmt_ex(const char *fmt, ...)
 
 static INLINE void
 SSE2_check_NM_EXCEPTION(){
-	// SSE2 È‚  È‚ UD(     I y R [ h  O) ğ”­       
+	// SSE2‚È‚µ‚È‚çUD(–³ŒøƒIƒyƒR[ƒh—áŠO)‚ğ”­¶‚³‚¹‚é
 	if(!(i386cpuid.cpu_feature & CPU_FEATURE_SSE2)){
 		EXCEPTION(UD_EXCEPTION, 0);
 	}
-	//  G ~     [ V     È‚ UD(     I y R [ h  O) ğ”­       
+	// ƒGƒ~ƒ…ƒŒ[ƒVƒ‡ƒ“‚È‚çUD(–³ŒøƒIƒyƒR[ƒh—áŠO)‚ğ”­¶‚³‚¹‚é
 	if(CPU_CR0 & CPU_CR0_EM){
 		EXCEPTION(UD_EXCEPTION, 0);
 	}
-	//  ^ X N X C b `    NM( f o C X g p s Â— O) ğ”­       
+	// ƒ^ƒXƒNƒXƒCƒbƒ`‚ÉNM(ƒfƒoƒCƒXg—p•s‰Â—áŠO)‚ğ”­¶‚³‚¹‚é
 	if (CPU_CR0 & CPU_CR0_TS) {
 		EXCEPTION(NM_EXCEPTION, 0);
 	}
@@ -83,7 +83,7 @@ SSE2_setTag(void)
 {
 }
 
-// mmx.c Ì‚ Ì‚Æ“   
+// mmx.c‚Ì‚à‚Ì‚Æ“¯‚¶
 static INLINE void
 MMX_setTag(void)
 {
@@ -115,14 +115,14 @@ double SSE2_ROUND_DOUBLE(double val){
 	case 0:	
 		floorval = floor(val);
 		if (val - floorval > 0.5){
-			return (floorval + 1); //  Ø‚ ã‚°
+			return (floorval + 1); // Ø‚èã‚°
 		}else if (val - floorval < 0.5){
-			return (floorval); //  Ø‚ Ì‚ 
+			return (floorval); // Ø‚èÌ‚Ä
 		}else{
 			if(floor(floorval / 2) == floorval/2){
-				return (floorval); //    
+				return (floorval); // ‹ô”
 			}else{
-				return (floorval+1); //  ï”
+				return (floorval+1); // Šï”
 			}
 		}
 		break;
@@ -132,9 +132,9 @@ double SSE2_ROUND_DOUBLE(double val){
 		return ceil(val);
 	case 3:
 		if(val < 0){
-			return ceil(val); //  [       Ö‚ÌØ‚ Ì‚ 
+			return ceil(val); // ƒ[ƒ•ûŒü‚Ö‚ÌØ‚èÌ‚Ä
 		}else{
-			return floor(val); //  [       Ö‚ÌØ‚ Ì‚ 
+			return floor(val); // ƒ[ƒ•ûŒü‚Ö‚ÌØ‚èÌ‚Ä
 		}
 		break;
 	default:
@@ -146,7 +146,7 @@ double SSE2_ROUND_DOUBLE(double val){
  * SSE2 interface
  */
 
-//  R [ h       È‚ Ì‚Å‚ â‹­   É‹  Ê‰ 
+// ƒR[ƒh‚ª’·‚­‚È‚é‚Ì‚Å‚â‚â‹­ˆø‚É‹¤’Ê‰»
 // xmm/m128 -> xmm
 static INLINE void SSE_PART_GETDATA1DATA2_PD(double **data1, double **data2, double *data2buf){
 	UINT32 op;
@@ -861,7 +861,7 @@ void SSE2_MOVSDmem2xmm(void)
 {
 	UINT32 op;
 	UINT idx, sub;
-	double data2buf[2];
+	SSEREG data2buf;
 	double *data1, *data2;
 	
 	SSE2_check_NM_EXCEPTION();
@@ -876,8 +876,8 @@ void SSE2_MOVSDmem2xmm(void)
 	} else {
 		UINT32 maddr;
 		maddr = calc_ea_dst((op));
-		*((UINT64*)(data2buf+ 0)) = cpu_vmemoryread_q(CPU_INST_SEGREG_INDEX, maddr+ 0);
-		data2 = data2buf;
+		data2buf.q[0] = cpu_vmemoryread_q(CPU_INST_SEGREG_INDEX, maddr+ 0);
+		data2 = data2buf.f64;
 		*(UINT64*)(data1+1) = 0;
 	}
 	data1[0] = data2[0];
@@ -908,12 +908,12 @@ void SSE2_MOVSDxmm2mem(void)
 }
 void SSE2_MOVUPDmem2xmm(void)
 {
-	SSE2_MOVAPDmem2xmm(); //  G ~     [ V     Å‚ÍƒA   C     g       È‚  Ì‚ MOVAPD Æ“   
+	SSE2_MOVAPDmem2xmm(); // ƒGƒ~ƒ…ƒŒ[ƒVƒ‡ƒ“‚Å‚ÍƒAƒ‰ƒCƒƒ“ƒg§ŒÀ‚ª‚È‚¢‚Ì‚ÅMOVAPD‚Æ“¯‚¶
 	TRACEOUT(("SSE2_MOVUPDmem2xmm"));
 }
 void SSE2_MOVUPDxmm2mem(void)
 {
-	SSE2_MOVAPDxmm2mem(); //  G ~     [ V     Å‚ÍƒA   C     g       È‚  Ì‚ MOVAPD Æ“   
+	SSE2_MOVAPDxmm2mem(); // ƒGƒ~ƒ…ƒŒ[ƒVƒ‡ƒ“‚Å‚ÍƒAƒ‰ƒCƒƒ“ƒg§ŒÀ‚ª‚È‚¢‚Ì‚ÅMOVAPD‚Æ“¯‚¶
 	TRACEOUT(("SSE2_MOVUPDxmm2mem"));
 }
 void SSE2_MULPD(void)
@@ -1010,7 +1010,7 @@ void SSE2_SUBSD(void)
 }
 void SSE2_UCOMISD(void)
 {
-	SSE_COMISS(); // XXX:  Æ‚è‚       O Íl   È‚  Ì‚ COMISS Æ“   
+	SSE_COMISS(); // XXX: ‚Æ‚è‚ ‚¦‚¸—áŠO‚Íl‚¦‚È‚¢‚Ì‚ÅCOMISS‚Æ“¯‚¶
 	TRACEOUT(("SSE2_UCOMISD"));
 }
 void SSE2_UNPCKHPD(void)
@@ -1103,12 +1103,12 @@ void SSE2_MOVDQAxmm2mem(void)
 }
 void SSE2_MOVDQUmem2xmm(void)
 {
-	SSE2_MOVDQAmem2xmm(); //  G ~     [ V     Å‚ÍƒA   C     g       È‚  Ì‚ MOVDQA Æ“   
+	SSE2_MOVDQAmem2xmm(); // ƒGƒ~ƒ…ƒŒ[ƒVƒ‡ƒ“‚Å‚ÍƒAƒ‰ƒCƒƒ“ƒg§ŒÀ‚ª‚È‚¢‚Ì‚ÅMOVDQA‚Æ“¯‚¶
 	TRACEOUT(("SSE2_MOVDQUmem2xmm"));
 }
 void SSE2_MOVDQUxmm2mem(void)
 {
-	SSE2_MOVDQAxmm2mem(); //  G ~     [ V     Å‚ÍƒA   C     g       È‚  Ì‚ MOVDQA Æ“   
+	SSE2_MOVDQAxmm2mem(); // ƒGƒ~ƒ…ƒŒ[ƒVƒ‡ƒ“‚Å‚ÍƒAƒ‰ƒCƒƒ“ƒg§ŒÀ‚ª‚È‚¢‚Ì‚ÅMOVDQA‚Æ“¯‚¶
 	TRACEOUT(("SSE2_MOVDQUxmm2mem"));
 }
 void SSE2_MOVQ2DQ(void)
@@ -1124,7 +1124,7 @@ void SSE2_MOVQ2DQ(void)
 	idx = (op >> 3) & 7;
 	sub = (op & 7);
 	if ((op) >= 0xc0) {
-		FPU_STAT.xmm_reg[idx].ul64[0] = FPU_STAT.reg[sub].ll; // idx  sub   t    B v    
+		FPU_STAT.xmm_reg[idx].ul64[0] = FPU_STAT.reg[sub].ll; // idx‚Æsub‚ª‹t‚©‚àB—vŒŸØ
 		FPU_STAT.xmm_reg[idx].ul64[1] = 0;
 	} else {
 		EXCEPTION(UD_EXCEPTION, 0);
@@ -1144,7 +1144,7 @@ void SSE2_MOVDQ2Q(void)
 	idx = (op >> 3) & 7;
 	sub = (op & 7);
 	if ((op) >= 0xc0) {
-		FPU_STAT.reg[idx].ll = FPU_STAT.xmm_reg[sub].ul64[0]; // idx  sub   t    B v    
+		FPU_STAT.reg[idx].ll = FPU_STAT.xmm_reg[sub].ul64[0]; // idx‚Æsub‚ª‹t‚©‚àB—vŒŸØ
 	} else {
 		EXCEPTION(UD_EXCEPTION, 0);
 	}
@@ -1195,7 +1195,7 @@ void SSE2_PACKSSDW(void)
 {
 	UINT32 op;
 	UINT idx, sub;
-	INT32 srcreg2buf[4];
+	SSEREG srcreg2buf;
 	INT32 *srcreg1;
 	INT32 *srcreg2;
 	INT16 *dstreg;
@@ -1215,12 +1215,12 @@ void SSE2_PACKSSDW(void)
 	} else {
 		UINT32 maddr;
 		maddr = calc_ea_dst((op));
-		*((UINT32*)(srcreg2buf+0)) = cpu_vmemoryread_d(CPU_INST_SEGREG_INDEX, maddr);
-		*((UINT32*)(srcreg2buf+1)) = cpu_vmemoryread_d(CPU_INST_SEGREG_INDEX, maddr+4);
-		*((UINT32*)(srcreg2buf+2)) = cpu_vmemoryread_d(CPU_INST_SEGREG_INDEX, maddr+8);
-		*((UINT32*)(srcreg2buf+3)) = cpu_vmemoryread_d(CPU_INST_SEGREG_INDEX, maddr+12);
+		srcreg2buf.d[0] = cpu_vmemoryread_d(CPU_INST_SEGREG_INDEX, maddr);
+		srcreg2buf.d[1] = cpu_vmemoryread_d(CPU_INST_SEGREG_INDEX, maddr + 4);
+		srcreg2buf.d[2] = cpu_vmemoryread_d(CPU_INST_SEGREG_INDEX, maddr + 8);
+		srcreg2buf.d[3] = cpu_vmemoryread_d(CPU_INST_SEGREG_INDEX, maddr + 12);
 		srcreg1 = (INT32*)(&(FPU_STAT.xmm_reg[idx]));
-		srcreg2 = (INT32*)(&srcreg2buf);
+		srcreg2 = (INT32*)(srcreg2buf.d);
 		dstreg = (INT16*)(&(FPU_STAT.xmm_reg[idx]));
 	}
 	for(i=0;i<4;i++){
@@ -1250,7 +1250,7 @@ void SSE2_PACKSSWB(void)
 {
 	UINT32 op;
 	UINT idx, sub;
-	INT16 srcreg2buf[8];
+	SSEREG srcreg2buf;
 	INT16 *srcreg1;
 	INT16 *srcreg2;
 	INT8 *dstreg;
@@ -1270,12 +1270,12 @@ void SSE2_PACKSSWB(void)
 	} else {
 		UINT32 maddr;
 		maddr = calc_ea_dst((op));
-		*((UINT32*)(srcreg2buf+0)) = cpu_vmemoryread_d(CPU_INST_SEGREG_INDEX, maddr);
-		*((UINT32*)(srcreg2buf+2)) = cpu_vmemoryread_d(CPU_INST_SEGREG_INDEX, maddr+4);
-		*((UINT32*)(srcreg2buf+4)) = cpu_vmemoryread_d(CPU_INST_SEGREG_INDEX, maddr+8);
-		*((UINT32*)(srcreg2buf+6)) = cpu_vmemoryread_d(CPU_INST_SEGREG_INDEX, maddr+12);
+		srcreg2buf.d[0] = cpu_vmemoryread_d(CPU_INST_SEGREG_INDEX, maddr);
+		srcreg2buf.d[1] = cpu_vmemoryread_d(CPU_INST_SEGREG_INDEX, maddr + 4);
+		srcreg2buf.d[2] = cpu_vmemoryread_d(CPU_INST_SEGREG_INDEX, maddr + 8);
+		srcreg2buf.d[3] = cpu_vmemoryread_d(CPU_INST_SEGREG_INDEX, maddr + 12);
 		srcreg1 = (INT16*)(&(FPU_STAT.xmm_reg[idx]));
-		srcreg2 = (INT16*)(&srcreg2buf);
+		srcreg2 = (INT16*)(srcreg2buf.w);
 		dstreg = (INT8*)(&(FPU_STAT.xmm_reg[idx]));
 	}
 	for(i=0;i<8;i++){
@@ -1305,7 +1305,7 @@ void SSE2_PACKUSWB(void)
 {
 	UINT32 op;
 	UINT idx, sub;
-	INT16 srcreg2buf[8];
+	SSEREG srcreg2buf;
 	INT16 *srcreg1;
 	INT16 *srcreg2;
 	UINT8 *dstreg;
@@ -1325,12 +1325,12 @@ void SSE2_PACKUSWB(void)
 	} else {
 		UINT32 maddr;
 		maddr = calc_ea_dst((op));
-		*((UINT32*)(srcreg2buf+0)) = cpu_vmemoryread_d(CPU_INST_SEGREG_INDEX, maddr);
-		*((UINT32*)(srcreg2buf+2)) = cpu_vmemoryread_d(CPU_INST_SEGREG_INDEX, maddr+4);
-		*((UINT32*)(srcreg2buf+4)) = cpu_vmemoryread_d(CPU_INST_SEGREG_INDEX, maddr+8);
-		*((UINT32*)(srcreg2buf+6)) = cpu_vmemoryread_d(CPU_INST_SEGREG_INDEX, maddr+12);
+		srcreg2buf.d[0] = cpu_vmemoryread_d(CPU_INST_SEGREG_INDEX, maddr);
+		srcreg2buf.d[1] = cpu_vmemoryread_d(CPU_INST_SEGREG_INDEX, maddr + 4);
+		srcreg2buf.d[2] = cpu_vmemoryread_d(CPU_INST_SEGREG_INDEX, maddr + 8);
+		srcreg2buf.d[3] = cpu_vmemoryread_d(CPU_INST_SEGREG_INDEX, maddr + 12);
 		srcreg1 = (INT16*)(&(FPU_STAT.xmm_reg[idx]));
-		srcreg2 = (INT16*)(&srcreg2buf);
+		srcreg2 = (INT16*)(srcreg2buf.w);
 		dstreg = (UINT8*)(&(FPU_STAT.xmm_reg[idx]));
 	}
 	for(i=0;i<8;i++){
@@ -1790,7 +1790,7 @@ void SSE2_PMULHUW(void)
 {
 	UINT32 op;
 	UINT idx, sub;
-	UINT16 data2buf[8];
+	SSEREG data2buf;
 	UINT16 *data1, *data2;
 	int i;
 	
@@ -1806,11 +1806,11 @@ void SSE2_PMULHUW(void)
 	} else {
 		UINT32 maddr;
 		maddr = calc_ea_dst((op));
-		*((UINT32*)(data2buf+0)) = cpu_vmemoryread_d(CPU_INST_SEGREG_INDEX, maddr);
-		*((UINT32*)(data2buf+2)) = cpu_vmemoryread_d(CPU_INST_SEGREG_INDEX, maddr+4);
-		*((UINT32*)(data2buf+4)) = cpu_vmemoryread_d(CPU_INST_SEGREG_INDEX, maddr+8);
-		*((UINT32*)(data2buf+6)) = cpu_vmemoryread_d(CPU_INST_SEGREG_INDEX, maddr+12);
-		data2 = data2buf;
+		data2buf.d[0] = cpu_vmemoryread_d(CPU_INST_SEGREG_INDEX, maddr);
+		data2buf.d[1] = cpu_vmemoryread_d(CPU_INST_SEGREG_INDEX, maddr + 4);
+		data2buf.d[2] = cpu_vmemoryread_d(CPU_INST_SEGREG_INDEX, maddr + 8);
+		data2buf.d[3] = cpu_vmemoryread_d(CPU_INST_SEGREG_INDEX, maddr + 12);
+		data2 = data2buf.w;
 	}
 	for(i=0;i<8;i++){
 		data1[i] = (UINT16)((((UINT32)data2[i] * (UINT32)data1[i]) >> 16) & 0xffff);
@@ -1821,7 +1821,7 @@ void SSE2_PMULHW(void)
 {
 	UINT32 op;
 	UINT idx, sub;
-	SINT16 data2buf[8];
+	SSEREG data2buf;
 	SINT16 *data1, *data2;
 	int i;
 	
@@ -1837,11 +1837,11 @@ void SSE2_PMULHW(void)
 	} else {
 		UINT32 maddr;
 		maddr = calc_ea_dst((op));
-		*((UINT32*)(data2buf+0)) = cpu_vmemoryread_d(CPU_INST_SEGREG_INDEX, maddr);
-		*((UINT32*)(data2buf+2)) = cpu_vmemoryread_d(CPU_INST_SEGREG_INDEX, maddr+4);
-		*((UINT32*)(data2buf+4)) = cpu_vmemoryread_d(CPU_INST_SEGREG_INDEX, maddr+8);
-		*((UINT32*)(data2buf+6)) = cpu_vmemoryread_d(CPU_INST_SEGREG_INDEX, maddr+12);
-		data2 = data2buf;
+		data2buf.d[0] = cpu_vmemoryread_d(CPU_INST_SEGREG_INDEX, maddr);
+		data2buf.d[1] = cpu_vmemoryread_d(CPU_INST_SEGREG_INDEX, maddr + 4);
+		data2buf.d[2] = cpu_vmemoryread_d(CPU_INST_SEGREG_INDEX, maddr + 8);
+		data2buf.d[3] = cpu_vmemoryread_d(CPU_INST_SEGREG_INDEX, maddr + 12);
+		data2 = (SINT16*)(data2buf.w);
 	}
 	for(i=0;i<8;i++){
 		data1[i] = (SINT16)((((SINT32)data2[i] * (SINT32)data1[i]) >> 16) & 0xffff);
@@ -1852,7 +1852,7 @@ void SSE2_PMULLW(void)
 {
 	UINT32 op;
 	UINT idx, sub;
-	SINT16 data2buf[8];
+	SSEREG data2buf;
 	SINT16 *data1, *data2;
 	int i;
 	
@@ -1868,11 +1868,11 @@ void SSE2_PMULLW(void)
 	} else {
 		UINT32 maddr;
 		maddr = calc_ea_dst((op));
-		*((UINT32*)(data2buf+0)) = cpu_vmemoryread_d(CPU_INST_SEGREG_INDEX, maddr);
-		*((UINT32*)(data2buf+2)) = cpu_vmemoryread_d(CPU_INST_SEGREG_INDEX, maddr+4);
-		*((UINT32*)(data2buf+4)) = cpu_vmemoryread_d(CPU_INST_SEGREG_INDEX, maddr+8);
-		*((UINT32*)(data2buf+6)) = cpu_vmemoryread_d(CPU_INST_SEGREG_INDEX, maddr+12);
-		data2 = data2buf;
+		data2buf.d[0] = cpu_vmemoryread_d(CPU_INST_SEGREG_INDEX, maddr);
+		data2buf.d[1] = cpu_vmemoryread_d(CPU_INST_SEGREG_INDEX, maddr + 4);
+		data2buf.d[2] = cpu_vmemoryread_d(CPU_INST_SEGREG_INDEX, maddr + 8);
+		data2buf.d[3] = cpu_vmemoryread_d(CPU_INST_SEGREG_INDEX, maddr + 12);
+		data2 = (SINT16*)(data2buf.w);
 	}
 	for(i=0;i<8;i++){
 		data1[i] = (SINT16)((((SINT32)data2[i] * (SINT32)data1[i])) & 0xffff);
@@ -2029,10 +2029,10 @@ void SSE2_PSLLW(void)
 	
 	SSE_PART_GETDATA1DATA2_PD_UINT64((UINT64**)(&data1), (UINT64**)(&data2), (UINT64*)data2buf);
 	shift = data2[0];
-	if(data2[1] || data2[2] || data2[3]) shift = 0xffffffff; // XXX:  Æ‚è‚        W X ^  e       é‚­ ç‚¢ å‚« ÈƒV t g Ê‚É‚  Ä‚   
+	if(data2[1] || data2[2] || data2[3]) shift = 0xffffffff; // XXX: ‚Æ‚è‚ ‚¦‚¸ƒŒƒWƒXƒ^“à—e‚ªÁ‚¦‚é‚­‚ç‚¢‘å‚«‚ÈƒVƒtƒg—Ê‚É‚µ‚Ä‚¨‚­
 	
 	for(i=0;i<8;i++){
-		data1[i] = (shift >= 16 ? 0 : (data1[i] << (UINT16)shift)); // XXX: MSB     c     Ì‚Å‚  Ü‚    i Â‹  Ë‘  H j
+		data1[i] = (shift >= 16 ? 0 : (data1[i] << (UINT16)shift)); // XXX: MSB‚ªæ‚èc‚³‚ê‚é‚Ì‚Å‚²‚Ü‚©‚µiŠÂ‹«ˆË‘¶Hj
 	}
 	TRACEOUT(("SSE2_PSLLW"));
 }
@@ -2046,10 +2046,10 @@ void SSE2_PSLLD(void)
 	
 	SSE_PART_GETDATA1DATA2_PD_UINT64((UINT64**)(&data1), (UINT64**)(&data2), (UINT64*)data2buf);
 	shift = data2[0];
-	if(data2[1] || data2[2] || data2[3]) shift = 0xffffffff; // XXX:  Æ‚è‚        W X ^  e       é‚­ ç‚¢ å‚« ÈƒV t g Ê‚É‚  Ä‚   
+	if(data2[1] || data2[2] || data2[3]) shift = 0xffffffff; // XXX: ‚Æ‚è‚ ‚¦‚¸ƒŒƒWƒXƒ^“à—e‚ªÁ‚¦‚é‚­‚ç‚¢‘å‚«‚ÈƒVƒtƒg—Ê‚É‚µ‚Ä‚¨‚­
 	
 	for(i=0;i<4;i++){
-		data1[i] = (shift >= 32 ? 0 : (data1[i] << (UINT32)shift)); // XXX: MSB     c     Ì‚Å‚  Ü‚    i Â‹  Ë‘  H j
+		data1[i] = (shift >= 32 ? 0 : (data1[i] << (UINT32)shift)); // XXX: MSB‚ªæ‚èc‚³‚ê‚é‚Ì‚Å‚²‚Ü‚©‚µiŠÂ‹«ˆË‘¶Hj
 	}
 	TRACEOUT(("SSE2_PSLLD"));
 }
@@ -2063,10 +2063,10 @@ void SSE2_PSLLQ(void)
 	
 	SSE_PART_GETDATA1DATA2_PD_UINT64((UINT64**)(&data1), (UINT64**)(&data2), (UINT64*)data2buf);
 	shift = data2[0];
-	if(data2[1] || data2[2] || data2[3]) shift = 0xffffffff; // XXX:  Æ‚è‚        W X ^  e       é‚­ ç‚¢ å‚« ÈƒV t g Ê‚É‚  Ä‚   
+	if(data2[1] || data2[2] || data2[3]) shift = 0xffffffff; // XXX: ‚Æ‚è‚ ‚¦‚¸ƒŒƒWƒXƒ^“à—e‚ªÁ‚¦‚é‚­‚ç‚¢‘å‚«‚ÈƒVƒtƒg—Ê‚É‚µ‚Ä‚¨‚­
 	
 	for(i=0;i<2;i++){
-		data1[i] = (shift >= 64 ? 0 : (data1[i] << (UINT64)shift)); // XXX: MSB     c     Ì‚Å‚  Ü‚    i Â‹  Ë‘  H j
+		data1[i] = (shift >= 64 ? 0 : (data1[i] << (UINT64)shift)); // XXX: MSB‚ªæ‚èc‚³‚ê‚é‚Ì‚Å‚²‚Ü‚©‚µiŠÂ‹«ˆË‘¶Hj
 	}
 	TRACEOUT(("SSE2_PSLLQ"));
 }
@@ -2101,9 +2101,9 @@ void SSE2_PSRAW(void)
 	
 	SSE_PART_GETDATA1DATA2_PD_UINT64((UINT64**)(&data1), (UINT64**)(&data2), (UINT64*)data2buf);
 	shift = data2[0];
-	if(data2[1] || data2[2] || data2[3]) shift = 0xffffffff; // XXX:  Æ‚è‚        W X ^  e       é‚­ ç‚¢ å‚« ÈƒV t g Ê‚É‚  Ä‚   
+	if(data2[1] || data2[2] || data2[3]) shift = 0xffffffff; // XXX: ‚Æ‚è‚ ‚¦‚¸ƒŒƒWƒXƒ^“à—e‚ªÁ‚¦‚é‚­‚ç‚¢‘å‚«‚ÈƒVƒtƒg—Ê‚É‚µ‚Ä‚¨‚­
 	
-	//        Z p V t g i       j
+	// –³—‚â‚èZpƒVƒtƒgi‰ö‚µ‚¢j
 	if(16 <= shift){
 		signval = 0xffff;
 	}else{
@@ -2114,7 +2114,7 @@ void SSE2_PSRAW(void)
 		if(((INT16*)data1)[i] < 0){
 			data1[i] = (data1[i] >> shift) | signval;
 		}else{
-			data1[i] = (shift >= 16 ? 0 : (data1[i] >> (UINT16)shift)); // XXX: LSB     c     Ì‚Å‚  Ü‚    i Â‹  Ë‘  H j
+			data1[i] = (shift >= 16 ? 0 : (data1[i] >> (UINT16)shift)); // XXX: LSB‚ªæ‚èc‚³‚ê‚é‚Ì‚Å‚²‚Ü‚©‚µiŠÂ‹«ˆË‘¶Hj
 		}
 	}
 	TRACEOUT(("SSE2_PSRAW"));
@@ -2130,9 +2130,9 @@ void SSE2_PSRAD(void)
 	
 	SSE_PART_GETDATA1DATA2_PD_UINT64((UINT64**)(&data1), (UINT64**)(&data2), (UINT64*)data2buf);
 	shift = data2[0];
-	if(data2[1] || data2[2] || data2[3]) shift = 0xffffffff; // XXX:  Æ‚è‚        W X ^  e       é‚­ ç‚¢ å‚« ÈƒV t g Ê‚É‚  Ä‚   
+	if(data2[1] || data2[2] || data2[3]) shift = 0xffffffff; // XXX: ‚Æ‚è‚ ‚¦‚¸ƒŒƒWƒXƒ^“à—e‚ªÁ‚¦‚é‚­‚ç‚¢‘å‚«‚ÈƒVƒtƒg—Ê‚É‚µ‚Ä‚¨‚­
 	
-	//        Z p V t g i       j
+	// –³—‚â‚èZpƒVƒtƒgi‰ö‚µ‚¢j
 	if(32 <= shift){
 		signval = 0xffffffff;
 	}else{
@@ -2143,7 +2143,7 @@ void SSE2_PSRAD(void)
 		if(((INT32*)data1)[i] < 0){
 			data1[i] = (data1[i] >> shift) | signval;
 		}else{
-			data1[i] = (shift >= 32 ? 0 : (data1[i] >> (UINT32)shift)); // XXX: LSB     c     Ì‚Å‚  Ü‚    i Â‹  Ë‘  H j
+			data1[i] = (shift >= 32 ? 0 : (data1[i] >> (UINT32)shift)); // XXX: LSB‚ªæ‚èc‚³‚ê‚é‚Ì‚Å‚²‚Ü‚©‚µiŠÂ‹«ˆË‘¶Hj
 		}
 	}
 	TRACEOUT(("SSE2_PSRAD"));
@@ -2186,10 +2186,10 @@ void SSE2_PSRLW(void)
 	
 	SSE_PART_GETDATA1DATA2_PD_UINT64((UINT64**)(&data1), (UINT64**)(&data2), (UINT64*)data2buf);
 	shift = data2[0];
-	if(data2[1] || data2[2] || data2[3]) shift = 0xffffffff; // XXX:  Æ‚è‚        W X ^  e       é‚­ ç‚¢ å‚« ÈƒV t g Ê‚É‚  Ä‚   
+	if(data2[1] || data2[2] || data2[3]) shift = 0xffffffff; // XXX: ‚Æ‚è‚ ‚¦‚¸ƒŒƒWƒXƒ^“à—e‚ªÁ‚¦‚é‚­‚ç‚¢‘å‚«‚ÈƒVƒtƒg—Ê‚É‚µ‚Ä‚¨‚­
 	
 	for(i=0;i<8;i++){
-		data1[i] = (shift >= 16 ? 0 : (data1[i] >> (UINT16)shift)); // XXX: LSB     c     Ì‚Å‚  Ü‚    i Â‹  Ë‘  H j
+		data1[i] = (shift >= 16 ? 0 : (data1[i] >> (UINT16)shift)); // XXX: LSB‚ªæ‚èc‚³‚ê‚é‚Ì‚Å‚²‚Ü‚©‚µiŠÂ‹«ˆË‘¶Hj
 	}
 	TRACEOUT(("SSE2_PSRLW"));
 }
@@ -2203,10 +2203,10 @@ void SSE2_PSRLD(void)
 	
 	SSE_PART_GETDATA1DATA2_PD_UINT64((UINT64**)(&data1), (UINT64**)(&data2), (UINT64*)data2buf);
 	shift = data2[0];
-	if(data2[1] || data2[2] || data2[3]) shift = 0xffffffff; // XXX:  Æ‚è‚        W X ^  e       é‚­ ç‚¢ å‚« ÈƒV t g Ê‚É‚  Ä‚   
+	if(data2[1] || data2[2] || data2[3]) shift = 0xffffffff; // XXX: ‚Æ‚è‚ ‚¦‚¸ƒŒƒWƒXƒ^“à—e‚ªÁ‚¦‚é‚­‚ç‚¢‘å‚«‚ÈƒVƒtƒg—Ê‚É‚µ‚Ä‚¨‚­
 	
 	for(i=0;i<4;i++){
-		data1[i] = (shift >= 32 ? 0 : (data1[i] >> (UINT32)shift)); // XXX: LSB     c     Ì‚Å‚  Ü‚    i Â‹  Ë‘  H j
+		data1[i] = (shift >= 32 ? 0 : (data1[i] >> (UINT32)shift)); // XXX: LSB‚ªæ‚èc‚³‚ê‚é‚Ì‚Å‚²‚Ü‚©‚µiŠÂ‹«ˆË‘¶Hj
 	}
 	TRACEOUT(("SSE2_PSRLD"));
 }
@@ -2220,10 +2220,10 @@ void SSE2_PSRLQ(void)
 	
 	SSE_PART_GETDATA1DATA2_PD_UINT64((UINT64**)(&data1), (UINT64**)(&data2), (UINT64*)data2buf);
 	shift = data2[0];
-	if(data2[1] || data2[2] || data2[3]) shift = 0xffffffff; // XXX:  Æ‚è‚        W X ^  e       é‚­ ç‚¢ å‚« ÈƒV t g Ê‚É‚  Ä‚   
+	if(data2[1] || data2[2] || data2[3]) shift = 0xffffffff; // XXX: ‚Æ‚è‚ ‚¦‚¸ƒŒƒWƒXƒ^“à—e‚ªÁ‚¦‚é‚­‚ç‚¢‘å‚«‚ÈƒVƒtƒg—Ê‚É‚µ‚Ä‚¨‚­
 	
 	for(i=0;i<2;i++){
-		data1[i] = (shift >= 64 ? 0 : (data1[i] >> (UINT64)shift)); // XXX: LSB     c     Ì‚Å‚  Ü‚    i Â‹  Ë‘  H j
+		data1[i] = (shift >= 64 ? 0 : (data1[i] >> (UINT64)shift)); // XXX: LSB‚ªæ‚èc‚³‚ê‚é‚Ì‚Å‚²‚Ü‚©‚µiŠÂ‹«ˆË‘¶Hj
 	}
 	TRACEOUT(("SSE2_PSRLQ"));
 }
@@ -2264,11 +2264,11 @@ void SSE2_PSxxWimm(void)
 	switch(idx){
 	case 2: // PSRLW(imm8)
 		for(i=0;i<8;i++){
-			dstreg[i] = (shift >= 16 ? 0 : (dstreg[i] >> (UINT16)shift)); // XXX: LSB     c     Ì‚Å‚  Ü‚    i Â‹  Ë‘  H j
+			dstreg[i] = (shift >= 16 ? 0 : (dstreg[i] >> (UINT16)shift)); // XXX: LSB‚ªæ‚èc‚³‚ê‚é‚Ì‚Å‚²‚Ü‚©‚µiŠÂ‹«ˆË‘¶Hj
 		}
 		break;
 	case 4: // PSRAW(imm8)
-		//        Z p V t g i       j
+		// –³—‚â‚èZpƒVƒtƒgi‰ö‚µ‚¢j
 		if(16 <= shift){
 			signval = 0xffff;
 		}else{
@@ -2279,13 +2279,13 @@ void SSE2_PSxxWimm(void)
 			if(((INT16*)dstreg)[i] < 0){
 				dstreg[i] = (dstreg[i] >> shift) | signval;
 			}else{
-				dstreg[i] = (shift >= 16 ? 0 : (dstreg[i] >> (UINT16)shift)); // XXX: LSB     c     Ì‚Å‚  Ü‚    i Â‹  Ë‘  H j
+				dstreg[i] = (shift >= 16 ? 0 : (dstreg[i] >> (UINT16)shift)); // XXX: LSB‚ªæ‚èc‚³‚ê‚é‚Ì‚Å‚²‚Ü‚©‚µiŠÂ‹«ˆË‘¶Hj
 			}
 		}
 		break;
 	case 6: // PSLLW(imm8)
 		for(i=0;i<8;i++){
-			dstreg[i] = (shift >= 16 ? 0 : (dstreg[i] << (UINT16)shift)); // XXX: MSB     c     Ì‚Å‚  Ü‚    i Â‹  Ë‘  H j
+			dstreg[i] = (shift >= 16 ? 0 : (dstreg[i] << (UINT16)shift)); // XXX: MSB‚ªæ‚èc‚³‚ê‚é‚Ì‚Å‚²‚Ü‚©‚µiŠÂ‹«ˆË‘¶Hj
 		}
 		break;
 	default:
@@ -2314,11 +2314,11 @@ void SSE2_PSxxDimm(void)
 	switch(idx){
 	case 2: // PSRLD(imm8)
 		for(i=0;i<4;i++){
-			dstreg[i] = (shift >= 32 ? 0 : (dstreg[i] >> (UINT32)shift)); // XXX: LSB     c     Ì‚Å‚  Ü‚    i Â‹  Ë‘  H j
+			dstreg[i] = (shift >= 32 ? 0 : (dstreg[i] >> (UINT32)shift)); // XXX: LSB‚ªæ‚èc‚³‚ê‚é‚Ì‚Å‚²‚Ü‚©‚µiŠÂ‹«ˆË‘¶Hj
 		}
 		break;
 	case 4: // PSRAD(imm8)
-		//        Z p V t g i       j
+		// –³—‚â‚èZpƒVƒtƒgi‰ö‚µ‚¢j
 		if(32 <= shift){
 			signval = 0xffffffff;
 		}else{
@@ -2329,13 +2329,13 @@ void SSE2_PSxxDimm(void)
 			if(((INT32*)dstreg)[i] < 0){
 				dstreg[i] = (dstreg[i] >> shift) | signval;
 			}else{
-				dstreg[i] = (shift >= 32 ? 0 : (dstreg[i] >> (UINT16)shift)); // XXX: LSB     c     Ì‚Å‚  Ü‚    i Â‹  Ë‘  H j
+				dstreg[i] = (shift >= 32 ? 0 : (dstreg[i] >> (UINT16)shift)); // XXX: LSB‚ªæ‚èc‚³‚ê‚é‚Ì‚Å‚²‚Ü‚©‚µiŠÂ‹«ˆË‘¶Hj
 			}
 		}
 		break;
 	case 6: // PSLLD(imm8)
 		for(i=0;i<4;i++){
-			dstreg[i] = (shift >= 32 ? 0 : (dstreg[i] << (UINT32)shift)); // XXX: MSB     c     Ì‚Å‚  Ü‚    i Â‹  Ë‘  H j
+			dstreg[i] = (shift >= 32 ? 0 : (dstreg[i] << (UINT32)shift)); // XXX: MSB‚ªæ‚èc‚³‚ê‚é‚Ì‚Å‚²‚Ü‚©‚µiŠÂ‹«ˆË‘¶Hj
 		}
 		break;
 	default:
@@ -2363,24 +2363,24 @@ void SSE2_PSxxQimm(void)
 	switch(idx){
 	case 2: // PSRLQ(imm8)
 		for(i=0;i<2;i++){
-			dstreg[i] = (shift >= 64 ? 0 : (dstreg[i] >> (UINT64)shift)); // XXX: LSB     c     Ì‚Å‚  Ü‚    i Â‹  Ë‘  H j
+			dstreg[i] = (shift >= 64 ? 0 : (dstreg[i] >> (UINT64)shift)); // XXX: LSB‚ªæ‚èc‚³‚ê‚é‚Ì‚Å‚²‚Ü‚©‚µiŠÂ‹«ˆË‘¶Hj
 		}
 		break;
 	case 3: // PSRLDQ
-		//        128bit E V t g        Ì‚Å—v    
-		shift *= 8; //  V t g Ê‚Íƒo C g   Åw  
+		// –³—‚â‚è128bit‰EƒVƒtƒg ‰ö‚µ‚¢‚Ì‚Å—vŒŸØ
+		shift *= 8; // ƒVƒtƒg—Ê‚ÍƒoƒCƒg”‚Åw’è
 		if(shift == 0){
-			//  V t g     È‚ç‰½    È‚ 
+			// ƒVƒtƒg–³‚µ‚È‚ç‰½‚à‚µ‚È‚¢
 		}else if(shift >= 128){
-			//  V t g  128 È Ì 
+			// ƒVƒtƒg‚ª128ˆÈã‚Ì
 			dstreg[0] = dstreg[1] = 0;
 		}else if(shift >= 64){
-			//  V t g  64 È Ì 
+			// ƒVƒtƒg‚ª64ˆÈã‚Ì
 			dstreg[0] = dstreg[1] >> (shift - 64);
 			dstreg[1] = 0;
 		}else{
-			//  V t g  64  è¬      
-			dstreg[0] = (dstreg[0] >> shift) | (dstreg[1] << (64-shift)); //     QWORD E V t g   ã‚©  ~  Ä‚    r b g  OR
+			// ƒVƒtƒg‚ª64‚æ‚è¬‚³‚¢
+			dstreg[0] = (dstreg[0] >> shift) | (dstreg[1] << (64-shift)); // ‰ºˆÊQWORD‰EƒVƒtƒg•ã‚©‚ç~‚è‚Ä‚«‚½ƒrƒbƒg‚ğOR
 			dstreg[1] = (dstreg[1] >> shift);
 		}
 		break;
@@ -2389,24 +2389,24 @@ void SSE2_PSxxQimm(void)
 		break;
 	case 6: // PSLLQ(imm8)
 		for(i=0;i<2;i++){
-			dstreg[i] = (shift >= 64 ? 0 : (dstreg[i] << (UINT64)shift)); // XXX: MSB     c     Ì‚Å‚  Ü‚    i Â‹  Ë‘  H j
+			dstreg[i] = (shift >= 64 ? 0 : (dstreg[i] << (UINT64)shift)); // XXX: MSB‚ªæ‚èc‚³‚ê‚é‚Ì‚Å‚²‚Ü‚©‚µiŠÂ‹«ˆË‘¶Hj
 		}
 		break;
 	case 7: // PSLLDQ
-		//        128bit   V t g        Ì‚Å—v    
-		shift *= 8; //  V t g Ê‚Íƒo C g   Åw  
+		// –³—‚â‚è128bit¶ƒVƒtƒg ‰ö‚µ‚¢‚Ì‚Å—vŒŸØ
+		shift *= 8; // ƒVƒtƒg—Ê‚ÍƒoƒCƒg”‚Åw’è
 		if(shift == 0){
-			//  V t g     È‚ç‰½    È‚ 
+			// ƒVƒtƒg–³‚µ‚È‚ç‰½‚à‚µ‚È‚¢
 		}else if(shift >= 128){
-			//  V t g  128 È Ì 
+			// ƒVƒtƒg‚ª128ˆÈã‚Ì
 			dstreg[0] = dstreg[1] = 0;
 		}else if(shift >= 64){
-			//  V t g  64 È Ì 
+			// ƒVƒtƒg‚ª64ˆÈã‚Ì
 			dstreg[1] = dstreg[0] << (shift - 64);
 			dstreg[0] = 0;
 		}else{
-			//  V t g  64  è¬      
-			dstreg[1] = (dstreg[1] << shift) | (dstreg[0] >> (64-shift)); //    QWORD   V t g        ã‚ª   Ä‚    r b g  OR
+			// ƒVƒtƒg‚ª64‚æ‚è¬‚³‚¢
+			dstreg[1] = (dstreg[1] << shift) | (dstreg[0] >> (64-shift)); // ãˆÊQWORD¶ƒVƒtƒg•‰º‚©‚çã‚ª‚Á‚Ä‚«‚½ƒrƒbƒg‚ğOR
 			dstreg[0] = (dstreg[0] << shift);
 		}
 		break;
@@ -2750,7 +2750,7 @@ void SSE2_MASKMOVDQU(void)
 			CPU_EDI += 1;
 		}
 	}
-	//  ß‚ 
+	// –ß‚·
 	if (!CPU_INST_AS32) {
 		CPU_DI -= 16;
 	} else {
@@ -2784,7 +2784,7 @@ void SSE2_MOVNTI(void)
 	GET_PCBYTE((op));
 	idx = (op >> 3) & 7;
 	sub = (op & 7);
-	data1 = reg32_b53[(op)]; //    ê‡   Ä‚ H
+	data1 = reg32_b53[(op)]; // ‚±‚ê‡‚Á‚Ä‚éH
 	if ((op) >= 0xc0) {
 		EXCEPTION(UD_EXCEPTION, 0);
 	} else {

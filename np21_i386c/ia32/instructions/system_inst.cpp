@@ -381,7 +381,9 @@ MOV_CdRd(void)
 				if (src & 0xfffff800) {
 					EXCEPTION(GP_EXCEPTION, 0);
 				}
-				ia32_warning("MOV_CdRd: CR4 <- 0x%08x", src);
+				if ((src & ~reg) != CPU_CR4_DE) { // XXX: debug extention‚ÍŒx‚µ‚È‚¢
+					ia32_warning("MOV_CdRd: CR4 <- 0x%08x", src);
+				}
 			}
 
 			reg = CPU_CR4;
@@ -1060,11 +1062,13 @@ HLT(void)
 	CPU_EIP = CPU_PREV_EIP;
 	CPU_STAT_HLT = 1;
 
+#if 0
 	// Exit MS-DOS Player
-	/*if(CPU_PREV_PC == 0xffff0) {
+	if(CPU_PREV_PC == 0xffff0) {
 		// The first process is terminated and jump to FFFF:0000 HALT
 		msdos_exit = 1;
-	}*/
+	}
+#endif
 }
 
 void

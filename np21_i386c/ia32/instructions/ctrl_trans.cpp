@@ -42,7 +42,7 @@
  * MS-DOS Player
  */
 extern UINT32 CPU_PREV_PC;
-extern UINT32 IRET_TOP;
+//extern UINT32 IRET_TOP;
 #ifdef USE_DEBUGGER
 extern int msdos_int_num;
 #endif
@@ -1343,8 +1343,9 @@ IRET(void)
 	}
 	IRQCHECKTERM();
 
+#if 0
 	// Emulate system call on MS-DOS Player
-	/*if(IRET_TOP <= CPU_PREV_PC && CPU_PREV_PC < (IRET_TOP + IRET_SIZE)) {
+	if(IRET_TOP <= CPU_PREV_PC && CPU_PREV_PC < (IRET_TOP + IRET_SIZE)) {
 #ifdef USE_DEBUGGER
 		// Disallow reentering CPU_EXECUTE() in msdos_syscall()
 		msdos_int_num = (CPU_PREV_PC - IRET_TOP);
@@ -1352,7 +1353,8 @@ IRET(void)
 		// Call msdos_syscall() here for better processing speed
 		msdos_syscall(CPU_PREV_PC - IRET_TOP);
 #endif
-	}*/
+	}
+#endif
 }
 
 /*
