@@ -237,9 +237,14 @@ _2byte_ESC16(void)
 	}else if(insttable_2byteF30F_32[op] && CPU_INST_REPUSE == 0xf3){
 		(*insttable_2byteF30F_32[op])();
 		return;
+	}else{
+		(*insttable_2byte[0][op])();
+		return;
 	}
-#endif
+#else
 	(*insttable_2byte[0][op])();
+#endif
+	//(*insttable_2byte[0][op])();
 }
 
 void
@@ -258,9 +263,14 @@ _2byte_ESC32(void)
 	}else if(insttable_2byteF30F_32[op] && CPU_INST_REPUSE == 0xf3){
 		(*insttable_2byteF30F_32[op])();
 		return;
+	}else{
+		(*insttable_2byte[1][op])();
+		return;
 	}
-#endif
+#else
 	(*insttable_2byte[1][op])();
+#endif
+	//(*insttable_2byte[1][op])();
 }
 
 void
