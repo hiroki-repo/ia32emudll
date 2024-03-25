@@ -30,10 +30,6 @@
 
 #include "inst_table.h"
 
-#ifdef CPU_USE_JIT
-#include "jit.h"
-#endif
-
 #if defined(ENABLE_TRAP)
 #include "trap/steptrap.h"
 #endif

@@ -123,8 +123,6 @@
 #define USE_VME
 #define IA32_REBOOT_ON_PANIC
 
-#define CPU_USE_JIT
-
 enum {
 	FPU_TYPE_SOFTFLOAT	= 0, /* Berkeley SoftFloat */
 	FPU_TYPE_DOSBOX		= 1, /* DOSBox FPU */

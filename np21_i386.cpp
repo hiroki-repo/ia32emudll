@@ -954,7 +954,12 @@ int CPU_EXECUTE_CC(int clockcount)
 						INTERRUPT(pic_ack_vector, 0);
 						irq_pending = false;
 						//pic_update();
-					}
+				}
+				else if (irq_pending && CPU_STAT_HLT) {
+					VERBOSE(("interrupt: reset HTL in real mode"));
+					CPU_EIP++;
+					CPU_STAT_HLT = 0;
+				}
 			}
 			dmax86();
 		} while (CPU_REMCLOCK > 0);
@@ -1002,6 +1007,8 @@ catch (int e) {
 		return CPU_BASECLOCK - CPU_REMCLOCK;
 #endif
 }
+
+extern "C" __declspec(dllexport) void* GET_CPU_exec_1step() { return &exec_1step; }
 
 extern "C" __declspec(dllexport) int CPU_EXECUTE_CC_V2(int clockcount) {
 	CPU_REMCLOCK = CPU_BASECLOCK = clockcount;
@@ -1252,18 +1259,6 @@ void CPU_EXECUTE_INFINITY(void) { while (true) { CPU_EXECUTE(); } }
 
 #include "np21_i386c/ia32/inst_table.h"
 #include "np21_i386c/cpumem.h"
-
-#ifdef CPU_USE_JIT
-#include "np21_i386c/ia32/jit.h"
-
-__declspec(dllexport) void CPU_JIT_EXECUTE(void) {
-	CPU_REMCLOCK = CPU_BASECLOCK = 0x7FFFFFFF;
-	while (true) {
-		execjit();
-		if (CPU_REMCLOCK <= 0) { CPU_REMCLOCK = 0x7FFFFFFF; }
-	}
-}
-#endif
 
 __declspec(dllexport) void CPU_EXECUTE_BY_NUM_OF_INSTS(UINT32 noi4prm_0) {
 	UINT32 noi = noi4prm_0;
