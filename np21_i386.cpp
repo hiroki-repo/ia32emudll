@@ -956,9 +956,9 @@ int CPU_EXECUTE_CC(int clockcount)
 						//pic_update();
 				}
 				else if (irq_pending && CPU_STAT_HLT) {
-					VERBOSE(("interrupt: reset HTL in real mode"));
 					CPU_EIP++;
 					CPU_STAT_HLT = 0;
+					irq_pending = false;
 				}
 			}
 			dmax86();
